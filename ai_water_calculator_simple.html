@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Water Calculator</title>
+<style>
+:root{
+  --blue:#1677ff;--cyan:#12b5cb;--green:#16a36a;--navy:#10233f;
+  --bg:#f3f8ff;--card:#fff;--muted:#718096;--line:#dbe7f5;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--navy)}
+header{
+  background:#fff;border-bottom:1px solid var(--line);padding:18px 7%;
+  display:flex;align-items:center;justify-content:space-between
+}
+.logo{font-size:20px;font-weight:800}.mini{color:var(--muted);font-size:13px}
+main{max-width:950px;margin:auto;padding:42px 18px 55px}
+.hero{text-align:center;margin-bottom:28px}
+.hero h1{font-size:clamp(35px,6vw,58px);line-height:1.05;margin:0 0 10px;letter-spacing:-2px}
+.hero p{margin:0;color:var(--muted);font-size:16px}
+.steps{display:flex;justify-content:center;gap:8px;margin:25px 0}
+.dot{width:34px;height:7px;border-radius:99px;background:#d7e3f3}
+.dot.active{background:var(--blue)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 8px 25px #16345a0b}
+.step-title{display:flex;gap:12px;align-items:center;margin-bottom:20px}
+.num{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:800}
+h2{font-size:19px;margin:0}
+label{display:block;font-weight:700;font-size:14px;margin:15px 0 7px}
+input{width:100%;padding:12px;border:1px solid #ccd8e7;border-radius:10px;font-size:16px}
+button{width:100%;border:0;border-radius:11px;background:var(--blue);color:#fff;padding:13px;font-size:16px;font-weight:800;margin-top:18px;cursor:pointer}
+button:hover{background:#075bd1}
+.result{background:linear-gradient(135deg,#e9f6ff,#e9fff7);border-radius:16px;padding:22px;text-align:center}
+.result .big{font-size:46px;font-weight:900;color:var(--blue);line-height:1}
+.result .label{margin-top:7px;color:#53677f;font-size:14px}
+.flow{margin-top:18px;display:grid;gap:10px}
+.row{display:flex;align-items:center;justify-content:space-between;background:#f7faff;border:1px solid #e3edf8;padding:12px;border-radius:10px;font-size:14px}
+.row strong{font-size:16px}
+.arrow{text-align:center;color:var(--blue);font-weight:900}
+.total{background:#edf9f4!important;border-color:#cbeede!important}
+.total strong{color:var(--green)}
+.note{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+.formula{margin-top:18px;background:#10233f;color:#fff;padding:15px;border-radius:12px;text-align:center;font-size:14px}
+.formula b{color:#5ee7c2}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.steps{margin-top:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">💧 AI Water Calculator</div>
+  <div class="mini">For students</div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>How much water does AI use?</h1>
+    <p>Calculate the estimated fresh water used for cooling in one day.</p>
+    <div class="steps"><span class="dot active"></span><span class="dot active"></span><span class="dot active"></span></div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <div class="step-title"><div class="num">1</div><h2>Enter the numbers</h2></div>
+
+      <label>AI processor power — kW</label>
+      <input id="power" type="number" value="1000" min="0" step="10">
+
+      <label>Hours running per day</label>
+      <input id="hours" type="number" value="24" min="0" max="24" step="0.5">
+
+      <label>Facility factor</label>
+      <input id="pue" type="number" value="1.2" min="1" step="0.01">
+
+      <label>Water per kWh — liters</label>
+      <input id="water" type="number" value="0.5" min="0" step="0.01">
+
+      <button onclick="calculate()">Calculate →</button>
+    </section>
+
+    <section class="card">
+      <div class="step-title"><div class="num">2</div><h2>Watch the calculation</h2></div>
+
+      <div class="flow">
+        <div class="row"><span>⚡ Power × time</span><strong id="energy">24,000 kWh</strong></div>
+        <div class="arrow">↓</div>
+        <div class="row"><span>🏢 × facility factor</span><strong id="facility">28,800 kWh</strong></div>
+        <div class="arrow">↓</div>
+        <div class="row"><span>💧 × water intensity</span><strong id="daily">14,400 L</strong></div>
+        <div class="row total"><span>💧 DAILY WATER</span><strong id="final">14,400 L</strong></div>
+      </div>
+
+      <div class="formula">
+        <b>Power × Hours × Factor × Water</b>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:18px;text-align:center">
+    <div class="step-title" style="justify-content:center;margin-bottom:14px">
+      <div class="num">3</div><h2>See the result</h2>
+    </div>
+    <div class="result">
+      <div class="big" id="big">14,400</div>
+      <div class="label">liters of fresh water / day</div>
+    </div>
+    <div style="margin-top:14px;color:#53677f;font-size:14px">
+      ≈ <strong id="bottles">28,800</strong> one-liter bottles
+      &nbsp; • &nbsp; <strong id="cubic">14.4</strong> m³
+    </div>
+    <div class="note">Estimate only. Actual water use varies by data center and cooling system.</div>
+  </section>
+</main>
+
+<script>
+function fmt(n,d=0){
+ return n.toLocaleString(undefined,{maximumFractionDigits:d});
+}
+function calculate(){
+ const p=+document.getElementById('power').value||0;
+ const h=+document.getElementById('hours').value||0;
+ const f=+document.getElementById('pue').value||0;
+ const w=+document.getElementById('water').value||0;
+ const energy=p*h;
+ const facility=energy*f;
+ const water=facility*w;
+ document.getElementById('energy').textContent=fmt(energy)+' kWh';
+ document.getElementById('facility').textContent=fmt(facility)+' kWh';
+ document.getElementById('daily').textContent=fmt(water,1)+' L';
+ document.getElementById('final').textContent=fmt(water,1)+' L';
+ document.getElementById('big').textContent=fmt(water,1);
+ document.getElementById('bottles').textContent=fmt(water);
+ document.getElementById('cubic').textContent=fmt(water/1000,2);
+}
+calculate();
+</script>
+</body>
+</html>
