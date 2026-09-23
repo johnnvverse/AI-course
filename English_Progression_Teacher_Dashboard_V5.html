@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Progression — Teacher Dashboard v5</title>
+<style>
+:root{
+  --bg:#0b1020;--card:#121a2d;--card2:#18233b;--text:#eef3ff;--muted:#9aa8c7;
+  --accent:#7c9cff;--green:#46d39a;--red:#ff6b7a;--gold:#ffcf6b;--line:#263452;--white:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#080d19,#101a31 55%,#0b1020);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
+button,input,textarea{font:inherit}
+button{cursor:pointer;border:0}
+button:disabled{cursor:not-allowed;opacity:.5}
+.wrap{max-width:1180px;margin:auto;padding:28px 18px 50px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+h1{font-size:28px;margin:0 0 5px}
+.sub{color:var(--muted);font-size:14px}
+.badge{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:#b9c7ff;background:#101a32}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:rgba(18,26,45,.92);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 10px 35px rgba(0,0,0,.18)}
+.label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.big{font-size:30px;font-weight:800;margin-top:8px}
+.status{margin-top:5px;font-weight:700}
+.green{color:var(--green)} .red{color:var(--red)} .muted{color:var(--muted)} .gold{color:var(--gold)}
+.panel{margin-top:16px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tabs{display:flex;gap:7px;flex-wrap:wrap}
+.tabs button,.secondary{background:#111a30;color:#cbd5ee;border:1px solid var(--line);padding:9px 14px;border-radius:10px}
+.tabs button.active{background:var(--accent);color:#081022;border-color:var(--accent);font-weight:800}
+.primary{background:var(--accent);color:#071024;padding:10px 15px;border-radius:10px;font-weight:800}
+.goldbtn{background:linear-gradient(135deg,#ffd873,#ffab4d);color:#332000;padding:10px 15px;border-radius:10px;font-weight:800}
+.danger{background:#321724;color:#ffabb4;border:1px solid #5b2632;padding:9px 13px;border-radius:10px}
+.chartbox{height:390px;position:relative}
+canvas{width:100%;height:100%;display:block}
+.chart-hint{font-size:12px;color:var(--muted);margin-top:8px}
+.entries{display:grid;gap:8px;margin-top:15px}
+.entry{display:grid;grid-template-columns:110px 1fr auto;gap:14px;align-items:center;padding:12px 14px;background:#0f172a;border:1px solid var(--line);border-radius:12px}
+.entry strong{font-size:14px}.entry small{color:var(--muted)}
+.actions{display:flex;gap:7px}
+.empty{text-align:center;padding:35px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.68);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.modal.show{display:flex}
+.modalbox{width:min(520px,100%);background:#121a2d;border:1px solid var(--line);border-radius:18px;padding:20px;max-height:88vh;overflow:auto}
+.modalbox h2{margin-top:0}
+.field{margin:14px 0}.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+.field input,.field textarea{width:100%;background:#0b1222;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
+.field textarea{min-height:110px;resize:vertical}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.footer-tools{display:flex;gap:8px;flex-wrap:wrap}
+.file-label{display:inline-flex;align-items:center;background:#111a30;color:#cbd5ee;border:1px solid var(--line);padding:9px 13px;border-radius:10px;cursor:pointer}
+input[type=file]{display:none}
+
+/* ---- Rank / Level system ---- */
+.rankhero{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.rankbadge{width:76px;height:76px;border-radius:20px;background:linear-gradient(135deg,#1c2846,#0f1628);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:38px;flex:none;box-shadow:0 0 0 3px rgba(124,156,255,.15) inset}
+.rankinfo{flex:1;min-width:220px}
+.rankname{font-size:22px;font-weight:800}
+.ranktag{color:var(--muted);font-size:13px;margin-top:2px}
+.starwallet{font-weight:800;color:var(--gold)}
+.progwrap{margin-top:10px}
+.progbar{height:10px;border-radius:999px;background:#0f172a;border:1px solid var(--line);overflow:hidden}
+.progfill{height:100%;background:linear-gradient(90deg,#7c9cff,#ffcf6b);border-radius:999px;transition:width .4s ease}
+.progtext{font-size:12px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.path{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 12px;margin-top:18px;scroll-snap-type:x proximity}
+.node{flex:none;width:118px;scroll-snap-align:start;text-align:center;background:#0f172a;border:1px solid var(--line);border-radius:14px;padding:12px 8px;opacity:.45;transition:opacity .2s,transform .2s}
+.node.unlocked{opacity:1}
+.node.current{opacity:1;border-color:var(--accent);box-shadow:0 0 0 2px rgba(124,156,255,.35);transform:translateY(-3px)}
+.node .em{font-size:26px}
+.node .nm{font-size:11px;font-weight:700;margin-top:6px;line-height:1.25;min-height:28px}
+.node .lv{font-size:10px;color:var(--muted);margin-top:2px}
+.node .cost{font-size:10px;margin-top:4px;color:var(--gold)}
+
+/* ---- Achievements ---- */
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px}
+.abadge{background:#0f172a;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;opacity:.4}
+.abadge.on{opacity:1;border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,207,107,.3) inset}
+.abadge .aem{font-size:24px}
+.abadge .an{font-size:12px;font-weight:700;margin-top:6px}
+.abadge .ad{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* ---- Quiz ---- */
+.quizrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.streakbox{display:flex;gap:18px;flex-wrap:wrap}
+.streakitem{text-align:center}
+.streakitem .n{font-size:22px;font-weight:800}
+.streakitem .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.qprogress{font-size:12px;color:var(--muted);margin-bottom:8px}
+.qword{font-size:26px;font-weight:800;margin:6px 0 2px}
+.qpos{color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
+.qopts{display:grid;gap:9px}
+.qopt{background:#0f172a;border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;color:var(--text)}
+.qopt:hover{border-color:var(--accent)}
+.qopt.correct{background:#0f2f22;border-color:var(--green);color:#c9ffe7}
+.qopt.wrong{background:#2f151c;border-color:var(--red);color:#ffd3d8}
+.qopt[disabled]{cursor:default}
+.qresult{text-align:center;padding:10px 0}
+.qresult .score{font-size:40px;font-weight:800;margin:8px 0}
+.confettiwrap{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.entry{grid-template-columns:1fr auto}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.chartbox{height:300px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>English Progression</h1>
+      <div class="sub">Teacher Dashboard · one student · saved automatically on this device</div>
+    </div>
+    <div class="badge">TEACHER MODE</div>
+  </div>
+
+  <section class="grid">
+    <div class="card"><div class="label">Current points</div><div class="big" id="currentPoints">100</div><div class="status" id="currentStatus">Very great</div></div>
+    <div class="card"><div class="label">Growth</div><div class="big" id="growth">0%</div><div class="sub">Compared with previous recorded result</div></div>
+    <div class="card"><div class="label">Best</div><div class="big" id="best">100</div><div class="sub">Highest recorded points</div></div>
+    <div class="card"><div class="label">Records</div><div class="big" id="records">0</div><div class="sub">Days recorded</div></div>
+  </section>
+
+  <section class="card panel">
+    <div class="toolbar">
+      <div>
+        <strong>🏅 Rank &amp; Level Path</strong>
+        <div class="sub">An honor system, separate from points. Stars are earned from progress and quizzes, then <em>spent</em> to unlock the next level — so the level reflects effort invested, not just raw skill.</div>
+      </div>
+      <button class="goldbtn" id="awardStarsBtn">🎁 Award bonus stars</button>
+    </div>
+    <div class="rankhero">
+      <div class="rankbadge" id="rankEmoji">🌱</div>
+      <div class="rankinfo">
+        <div class="rankname" id="rankName">Sprout</div>
+        <div class="ranktag" id="rankTag">Planting the first seeds of English</div>
+        <div class="progwrap">
+          <div class="progbar"><div class="progfill" id="progFill" style="width:0%"></div></div>
+          <div class="progtext">
+            <span><span class="starwallet" id="starBalance">0 ⭐</span> available</span>
+            <span id="progLabel">Max level reached</span>
+          </div>
+        </div>
+      </div>
+      <button class="primary" id="unlockBtn">Unlock next level</button>
+    </div>
+    <div class="path" id="path"></div>
+  </section>
+
+  <section class="card panel">
+    <div class="toolbar">
+      <div>
+        <strong>🧠 Daily Word Quiz</strong>
+        <div class="sub" id="quizSub">5 quick questions from the vocabulary bank, picked to match the current level. Correct answers earn stars.</div>
+      </div>
+      <button class="primary" id="quizBtn">Start today's quiz</button>
+    </div>
+    <div class="streakbox">
+      <div class="streakitem"><div class="n" id="streakNow">0🔥</div><div class="l">Current streak</div></div>
+      <div class="streakitem"><div class="n" id="streakBest">0</div><div class="l">Best streak</div></div>
+      <div class="streakitem"><div class="n" id="quizAccuracy">0%</div><div class="l">All-time accuracy</div></div>
+      <div class="streakitem"><div class="n" id="wordsSeen">0</div><div class="l">Words practiced</div></div>
+    </div>
+  </section>
+
+  <section class="card panel">
+    <div class="toolbar">
+      <div>
+        <strong>🏆 Achievements</strong>
+        <div class="sub">Fun milestones that unlock automatically as your student progresses.</div>
+      </div>
+    </div>
+    <div class="badges" id="badges"></div>
+  </section>
+
+  <section class="card panel">
+    <div class="toolbar">
+      <div>
+        <strong>Growth graph</strong>
+        <div class="sub">Click any point to view or edit that day's result and note.</div>
+      </div>
+      <div class="tabs" id="tabs">
+        <button data-period="daily" class="active">Daily</button>
+        <button data-period="weekly">Weekly</button>
+        <button data-period="monthly">Monthly</button>
+        <button data-period="yearly">Yearly</button>
+      </div>
+    </div>
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+    <div class="chart-hint">Higher line = stronger progress. Points are out of 100. <span class="green">Positive change = points gained</span> · <span class="red">Negative change = points lost</span>.</div>
+  </section>
+
+  <section class="card panel">
+    <div class="toolbar">
+      <div>
+        <strong>Add / manage progress</strong>
+        <div class="sub">Add or remove points using a signed number, e.g. +5 or -10. Positive changes also earn stars.</div>
+      </div>
+      <button class="primary" id="addBtn">+ Add result</button>
+    </div>
+    <div id="entries" class="entries"></div>
+  </section>
+
+  <section class="card panel">
+    <div class="toolbar">
+      <div>
+        <strong>Student report</strong>
+        <div class="sub">Creates a separate read-only HTML page for the student, including rank and quiz stats.</div>
+      </div>
+      <div class="footer-tools">
+        <button class="primary" id="downloadBtn">Download Progress</button>
+        <button class="secondary" id="exportBtn">Export Data</button>
+        <label class="file-label">Import Data<input type="file" id="importFile" accept=".json"></label>
+        <button class="danger" id="resetBtn">Reset</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modalbox">
+    <h2 id="modalTitle">Add result</h2>
+    <div class="field"><label>Date</label><input type="date" id="dateInput"></div>
+    <div class="field"><label>Point change (+ / −)</label><input type="number" id="changeInput" step="1" placeholder="Example: -10 or +5"><div class="sub" style="margin-top:5px">Use a negative number to remove points. Total points cannot go below 0 or above 100.</div></div>
+    <div class="field"><label>Teacher note</label><textarea id="noteInput" placeholder="What happened today? Homework, speaking, grammar, improvement..."></textarea></div>
+    <div class="modal-actions">
+      <button class="secondary" id="cancelBtn">Cancel</button>
+      <button class="primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="starsModal">
+  <div class="modalbox">
+    <h2>🎁 Award bonus stars</h2>
+    <div class="sub">Give extra stars for anything that deserves recognition — great homework, a breakthrough in speaking, real effort. This does not change the 0–100 point score.</div>
+    <div class="field"><label>Stars to award</label><input type="number" id="starsInput" min="1" step="1" placeholder="Example: 20"></div>
+    <div class="field"><label>Reason (optional)</label><input type="text" id="starsReason" placeholder="Example: Great job in today's conversation!"></div>
+    <div class="modal-actions">
+      <button class="secondary" id="starsCancelBtn">Cancel</button>
+      <button class="goldbtn" id="starsSaveBtn">Award</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="levelUpModal">
+  <div class="modalbox" style="text-align:center">
+    <div style="font-size:54px" id="luEmoji">🌱</div>
+    <h2 style="margin-bottom:2px">Level Up!</h2>
+    <div class="sub" style="margin-bottom:10px">Your student has honorably earned a new rank.</div>
+    <div class="rankname" id="luName" style="font-size:24px"></div>
+    <div class="ranktag" id="luTag" style="margin-bottom:18px"></div>
+    <button class="primary" id="luCloseBtn">Nice!</button>
+  </div>
+</div>
+
+<div class="modal" id="quizModal">
+  <div class="modalbox">
+    <div id="quizArea"></div>
+  </div>
+</div>
+
+<div class="confettiwrap" id="confettiWrap"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ Embedded vocabulary bank (1058 words) ============ */
+const VOCAB = [{"w":"absolutely","p":"adv","l":1,"d":"totally"},{"w":"add","p":"v","l":1,"d":"put something with another"},{"w":"again","p":"adv","l":1,"d":"one more time"},{"w":"age","p":"n","l":1,"d":"how many years old"},{"w":"air","p":"n","l":1,"d":"the gas we breathe"},{"w":"allow","p":"v","l":1,"d":"let something happen"},{"w":"almost","p":"adv","l":1,"d":"nearly"},{"w":"already","p":"adv","l":1,"d":"before now"},{"w":"also","p":"adv","l":1,"d":"in addition"},{"w":"always","p":"adv","l":1,"d":"at all times"},{"w":"angry","p":"adj","l":1,"d":"feeling strong displeasure"},{"w":"answer","p":"v","l":1,"d":"reply to a question"},{"w":"appear","p":"v","l":1,"d":"come into view"},{"w":"area","p":"n","l":1,"d":"a part of a place"},{"w":"art","p":"n","l":1,"d":"creative work like painting"},{"w":"ask","p":"v","l":1,"d":"put a question"},{"w":"away","p":"adv","l":1,"d":"to a different place"},{"w":"back","p":"n","l":1,"d":"the rear part of the body"},{"w":"bad","p":"adj","l":1,"d":"not good; unpleasant"},{"w":"be","p":"v","l":1,"d":"exist or happen"},{"w":"beautiful","p":"adj","l":1,"d":"pleasing to look at"},{"w":"become","p":"v","l":1,"d":"start to be"},{"w":"begin","p":"v","l":1,"d":"start something"},{"w":"believe","p":"v","l":1,"d":"think something is true"},{"w":"big","p":"adj","l":1,"d":"large in size"},{"w":"body","p":"n","l":1,"d":"the whole physical form of a person"},{"w":"book","p":"n","l":1,"d":"pages with words to read"},{"w":"boring","p":"adj","l":1,"d":"not interesting"},{"w":"boy","p":"n","l":1,"d":"a young male"},{"w":"brave","p":"adj","l":1,"d":"not afraid of danger"},{"w":"break","p":"v","l":1,"d":"separate into pieces"},{"w":"bring","p":"v","l":1,"d":"carry something with you"},{"w":"build","p":"v","l":1,"d":"construct something"},{"w":"busy","p":"adj","l":1,"d":"having a lot to do"},{"w":"buy","p":"v","l":1,"d":"get by paying money"},{"w":"call","p":"v","l":1,"d":"say loudly or phone someone"},{"w":"car","p":"n","l":1,"d":"a vehicle for driving"},{"w":"careful","p":"adj","l":1,"d":"paying close attention"},{"w":"carefully","p":"adv","l":1,"d":"with care"},{"w":"carry","p":"v","l":1,"d":"hold and take somewhere"},{"w":"case","p":"n","l":1,"d":"a situation; a container"},{"w":"catch","p":"v","l":1,"d":"take hold of a moving thing"},{"w":"certainly","p":"adv","l":1,"d":"without doubt"},{"w":"change","p":"v","l":1,"d":"make different"},{"w":"cheap","p":"adj","l":1,"d":"low in price"},{"w":"check","p":"v","l":1,"d":"look at to make sure"},{"w":"child","p":"n","l":1,"d":"a young human"},{"w":"choose","p":"v","l":1,"d":"pick one thing"},{"w":"city","p":"n","l":1,"d":"a large town"},{"w":"class","p":"n","l":1,"d":"a group of students; a category"},{"w":"clean","p":"v","l":1,"d":"remove dirt"},{"w":"clearly","p":"adv","l":1,"d":"in a clear way"},{"w":"clever","p":"adj","l":1,"d":"quick to learn"},{"w":"climb","p":"v","l":1,"d":"go up something"},{"w":"close","p":"v","l":1,"d":"shut something"},{"w":"closed","p":"adj","l":1,"d":"shut"},{"w":"cold","p":"adj","l":1,"d":"having low temperature"},{"w":"color","p":"n","l":1,"d":"red, blue, green, etc."},{"w":"come","p":"v","l":1,"d":"move toward the speaker"},{"w":"comfortable","p":"adj","l":1,"d":"physically relaxed"},{"w":"community","p":"n","l":1,"d":"people living in one area"},{"w":"company","p":"n","l":1,"d":"a business"},{"w":"completely","p":"adv","l":1,"d":"fully"},{"w":"consider","p":"v","l":1,"d":"think carefully about"},{"w":"continue","p":"v","l":1,"d":"keep doing something"},{"w":"cook","p":"v","l":1,"d":"prepare food with heat"},{"w":"count","p":"v","l":1,"d":"say numbers in order"},{"w":"country","p":"n","l":1,"d":"a nation with its own land"},{"w":"create","p":"v","l":1,"d":"make something new"},{"w":"cry","p":"v","l":1,"d":"shed tears"},{"w":"cut","p":"v","l":1,"d":"divide with a sharp tool"},{"w":"dance","p":"v","l":1,"d":"move to music"},{"w":"dangerous","p":"adj","l":1,"d":"likely to cause harm"},{"w":"dark","p":"adj","l":1,"d":"with little light"},{"w":"day","p":"n","l":1,"d":"24 hours"},{"w":"decide","p":"v","l":1,"d":"make a choice"},{"w":"deep","p":"adj","l":1,"d":"extending far down"},{"w":"die","p":"v","l":1,"d":"stop living"},{"w":"different","p":"adj","l":1,"d":"not the same"},{"w":"difficult","p":"adj","l":1,"d":"hard to do"},{"w":"directly","p":"adv","l":1,"d":"in a straight line; honestly"},{"w":"dirty","p":"adj","l":1,"d":"not clean"},{"w":"do","p":"v","l":1,"d":"perform an action"},{"w":"door","p":"n","l":1,"d":"the entrance to a room"},{"w":"down","p":"adv","l":1,"d":"toward a lower place"},{"w":"draw","p":"v","l":1,"d":"make a picture"},{"w":"drink","p":"v","l":1,"d":"swallow a liquid"},{"w":"drive","p":"v","l":1,"d":"control a vehicle"},{"w":"dull","p":"adj","l":1,"d":"not sharp or interesting"},{"w":"early","p":"adj","l":1,"d":"before the usual time"},{"w":"easily","p":"adv","l":1,"d":"without difficulty"},{"w":"easy","p":"adj","l":1,"d":"not difficult"},{"w":"eat","p":"v","l":1,"d":"put food in your mouth"},{"w":"education","p":"n","l":1,"d":"the process of learning"},{"w":"empty","p":"adj","l":1,"d":"containing nothing"},{"w":"end","p":"n","l":1,"d":"the last part"},{"w":"enjoy","p":"v","l":1,"d":"get pleasure from"},{"w":"especially","p":"adv","l":1,"d":"more than usual"},{"w":"eventually","p":"adv","l":1,"d":"in the end"},{"w":"exactly","p":"adv","l":1,"d":"precisely"},{"w":"excited","p":"adj","l":1,"d":"feeling great enthusiasm"},{"w":"expensive","p":"adj","l":1,"d":"high in price"},{"w":"explain","p":"v","l":1,"d":"make something clear"},{"w":"extremely","p":"adv","l":1,"d":"to a very high degree"},{"w":"eye","p":"n","l":1,"d":"the organ you see with"},{"w":"fact","p":"n","l":1,"d":"something known to be true"},{"w":"fairly","p":"adv","l":1,"d":"reasonably"},{"w":"fall","p":"v","l":1,"d":"drop down"},{"w":"false","p":"adj","l":1,"d":"not true"},{"w":"family","p":"n","l":1,"d":"parents and children together"},{"w":"famous","p":"adj","l":1,"d":"known by many people"},{"w":"fast","p":"adj","l":1,"d":"moving quickly"},{"w":"feel","p":"v","l":1,"d":"experience an emotion"},{"w":"figure","p":"n","l":1,"d":"a number; a shape of a body"},{"w":"finally","p":"adv","l":1,"d":"at the end"},{"w":"find","p":"v","l":1,"d":"discover something"},{"w":"fix","p":"v","l":1,"d":"repair something"},{"w":"fly","p":"v","l":1,"d":"move through the air"},{"w":"follow","p":"v","l":1,"d":"go after someone"},{"w":"food","p":"n","l":1,"d":"what people eat"},{"w":"foot","p":"n","l":1,"d":"the part of the leg you stand on"},{"w":"free","p":"adj","l":1,"d":"costing nothing; not restricted"},{"w":"friend","p":"n","l":1,"d":"a person you like and trust"},{"w":"friendly","p":"adj","l":1,"d":"acting like a friend"},{"w":"full","p":"adj","l":1,"d":"containing as much as possible"},{"w":"funny","p":"adj","l":1,"d":"causing laughter"},{"w":"game","p":"n","l":1,"d":"an activity for fun"},{"w":"generally","p":"adv","l":1,"d":"in most cases"},{"w":"get","p":"v","l":1,"d":"obtain something"},{"w":"girl","p":"n","l":1,"d":"a young female"},{"w":"give","p":"v","l":1,"d":"hand something to someone"},{"w":"go","p":"v","l":1,"d":"move to another place"},{"w":"good","p":"adj","l":1,"d":"of high quality; pleasant"},{"w":"government","p":"n","l":1,"d":"the group that runs a country"},{"w":"group","p":"n","l":1,"d":"people or things together"},{"w":"grow","p":"v","l":1,"d":"become bigger"},{"w":"guy","p":"n","l":1,"d":"an informal word for man"},{"w":"hair","p":"n","l":1,"d":"thin strands growing on the head"},{"w":"hand","p":"n","l":1,"d":"the part at the end of your arm"},{"w":"happen","p":"v","l":1,"d":"occur or take place"},{"w":"happy","p":"adj","l":1,"d":"feeling pleasure"},{"w":"hard","p":"adj","l":1,"d":"difficult; solid"},{"w":"have","p":"v","l":1,"d":"possess or own something"},{"w":"health","p":"n","l":1,"d":"the state of being well"},{"w":"healthy","p":"adj","l":1,"d":"in good physical condition"},{"w":"hear","p":"v","l":1,"d":"notice a sound"},{"w":"heavy","p":"adj","l":1,"d":"having great weight"},{"w":"help","p":"v","l":1,"d":"assist someone"},{"w":"here","p":"adv","l":1,"d":"in this place"},{"w":"high","p":"adj","l":1,"d":"far above the ground"},{"w":"history","p":"n","l":1,"d":"the study of the past"},{"w":"hit","p":"v","l":1,"d":"strike something"},{"w":"hold","p":"v","l":1,"d":"have in your hands"},{"w":"hot","p":"adj","l":1,"d":"having high temperature"},{"w":"house","p":"n","l":1,"d":"a building people live in"},{"w":"hungry","p":"adj","l":1,"d":"needing food"},{"w":"idea","p":"n","l":1,"d":"a thought or plan"},{"w":"image","p":"n","l":1,"d":"a picture of something"},{"w":"immediately","p":"adv","l":1,"d":"right away"},{"w":"important","p":"adj","l":1,"d":"having great value"},{"w":"impossible","p":"adj","l":1,"d":"not able to happen"},{"w":"include","p":"v","l":1,"d":"have as a part"},{"w":"information","p":"n","l":1,"d":"facts about something"},{"w":"interesting","p":"adj","l":1,"d":"holding your attention"},{"w":"job","p":"n","l":1,"d":"the work you do for money"},{"w":"join","p":"v","l":1,"d":"come together"},{"w":"jump","p":"v","l":1,"d":"push yourself off the ground"},{"w":"just","p":"adv","l":1,"d":"only; very recently"},{"w":"keep","p":"v","l":1,"d":"continue having something"},{"w":"kick","p":"v","l":1,"d":"strike with your foot"},{"w":"kill","p":"v","l":1,"d":"cause to die"},{"w":"kind","p":"n","l":1,"d":"a type or sort"},{"w":"know","p":"v","l":1,"d":"understand or be aware of"},{"w":"late","p":"adj","l":1,"d":"after the usual time"},{"w":"later","p":"adv","l":1,"d":"after some time"},{"w":"laugh","p":"v","l":1,"d":"make sounds showing joy"},{"w":"law","p":"n","l":1,"d":"an official rule"},{"w":"lazy","p":"adj","l":1,"d":"not willing to work"},{"w":"lead","p":"v","l":1,"d":"go in front; guide"},{"w":"learn","p":"v","l":1,"d":"gain knowledge or skill"},{"w":"leave","p":"v","l":1,"d":"go away from"},{"w":"let","p":"v","l":1,"d":"allow something"},{"w":"letter","p":"n","l":1,"d":"a written message; a symbol in the alphabet"},{"w":"level","p":"n","l":1,"d":"a stage or amount"},{"w":"life","p":"n","l":1,"d":"the state of being alive"},{"w":"light","p":"adj","l":1,"d":"not heavy; bright"},{"w":"like","p":"v","l":1,"d":"enjoy something"},{"w":"line","p":"n","l":1,"d":"a long thin mark"},{"w":"listen","p":"v","l":1,"d":"pay attention to sound"},{"w":"live","p":"v","l":1,"d":"be alive; stay somewhere"},{"w":"long","p":"adj","l":1,"d":"great in length"},{"w":"look","p":"v","l":1,"d":"direct your eyes"},{"w":"lose","p":"v","l":1,"d":"not have something anymore"},{"w":"lot","p":"n","l":1,"d":"a large amount"},{"w":"loud","p":"adj","l":1,"d":"making a lot of noise"},{"w":"loudly","p":"adv","l":1,"d":"with a lot of noise"},{"w":"love","p":"v","l":1,"d":"feel deep affection"},{"w":"low","p":"adj","l":1,"d":"near the ground"},{"w":"make","p":"v","l":1,"d":"create or produce"},{"w":"man","p":"n","l":1,"d":"an adult male human"},{"w":"market","p":"n","l":1,"d":"a place to buy and sell"},{"w":"married","p":"adj","l":1,"d":"joined in marriage"},{"w":"maybe","p":"adv","l":1,"d":"perhaps"},{"w":"mean","p":"v","l":1,"d":"intend to express"},{"w":"meet","p":"v","l":1,"d":"come together with someone"},{"w":"member","p":"n","l":1,"d":"a person in a group"},{"w":"minute","p":"n","l":1,"d":"60 seconds"},{"w":"moment","p":"n","l":1,"d":"a very short time"},{"w":"money","p":"n","l":1,"d":"what you use to buy things"},{"w":"month","p":"n","l":1,"d":"about 30 days"},{"w":"morning","p":"n","l":1,"d":"the early part of the day"},{"w":"mostly","p":"adv","l":1,"d":"mainly"},{"w":"mother","p":"n","l":1,"d":"a female parent"},{"w":"move","p":"v","l":1,"d":"change position"},{"w":"music","p":"n","l":1,"d":"sounds arranged nicely"},{"w":"name","p":"n","l":1,"d":"what someone is called"},{"w":"narrow","p":"adj","l":1,"d":"small in width"},{"w":"need","p":"v","l":1,"d":"require something"},{"w":"nervous","p":"adj","l":1,"d":"worried or anxious"},{"w":"never","p":"adv","l":1,"d":"not at any time"},{"w":"new","p":"adj","l":1,"d":"not existing before"},{"w":"nice","p":"adj","l":1,"d":"pleasant and kind"},{"w":"normal","p":"adj","l":1,"d":"typical or usual"},{"w":"now","p":"adv","l":1,"d":"at this time"},{"w":"number","p":"n","l":1,"d":"a word used to count"},{"w":"offer","p":"v","l":1,"d":"say you will give"},{"w":"office","p":"n","l":1,"d":"a place for work"},{"w":"often","p":"adv","l":1,"d":"many times"},{"w":"old","p":"adj","l":1,"d":"having lived many years"},{"w":"only","p":"adv","l":1,"d":"no more than"},{"w":"open","p":"v","l":1,"d":"make not closed"},{"w":"others","p":"n","l":1,"d":"people apart from you"},{"w":"out","p":"adv","l":1,"d":"away from inside"},{"w":"paint","p":"v","l":1,"d":"cover with color"},{"w":"paper","p":"n","l":1,"d":"thin material for writing"},{"w":"parent","p":"n","l":1,"d":"a mother or father"},{"w":"part","p":"n","l":1,"d":"a piece of something"},{"w":"particularly","p":"adv","l":1,"d":"especially"},{"w":"party","p":"n","l":1,"d":"a fun social event"},{"w":"pass","p":"v","l":1,"d":"go by; hand to"},{"w":"pay","p":"v","l":1,"d":"give money for something"},{"w":"perhaps","p":"adv","l":1,"d":"possibly"},{"w":"person","p":"n","l":1,"d":"a human being"},{"w":"picture","p":"n","l":1,"d":"an image"},{"w":"place","p":"n","l":1,"d":"a location"},{"w":"plant","p":"v","l":1,"d":"put a seed in soil"},{"w":"play","p":"v","l":1,"d":"have fun or do a game"},{"w":"point","p":"n","l":1,"d":"an idea; a place"},{"w":"policy","p":"n","l":1,"d":"a plan of action"},{"w":"polite","p":"adj","l":1,"d":"showing good manners"},{"w":"poor","p":"adj","l":1,"d":"having little money"},{"w":"popular","p":"adj","l":1,"d":"liked by many people"},{"w":"possible","p":"adj","l":1,"d":"able to happen"},{"w":"practice","p":"v","l":1,"d":"do repeatedly to improve"},{"w":"president","p":"n","l":1,"d":"the leader of a country"},{"w":"probably","p":"adv","l":1,"d":"likely to be true"},{"w":"problem","p":"n","l":1,"d":"a difficult situation"},{"w":"proud","p":"adj","l":1,"d":"feeling satisfaction about achievement"},{"w":"pull","p":"v","l":1,"d":"move toward you"},{"w":"push","p":"v","l":1,"d":"move away from you"},{"w":"put","p":"v","l":1,"d":"place something somewhere"},{"w":"question","p":"n","l":1,"d":"something asked to get an answer"},{"w":"quickly","p":"adv","l":1,"d":"at a fast speed"},{"w":"quiet","p":"adj","l":1,"d":"making little noise"},{"w":"quietly","p":"adv","l":1,"d":"without noise"},{"w":"quite","p":"adv","l":1,"d":"to a certain degree"},{"w":"raise","p":"v","l":1,"d":"lift up"},{"w":"rather","p":"adv","l":1,"d":"to some extent"},{"w":"reach","p":"v","l":1,"d":"arrive at; extend to"},{"w":"read","p":"v","l":1,"d":"look at and understand text"},{"w":"ready","p":"adj","l":1,"d":"prepared for something"},{"w":"really","p":"adv","l":1,"d":"in fact; very"},{"w":"reason","p":"n","l":1,"d":"why something happens"},{"w":"recently","p":"adv","l":1,"d":"not long ago"},{"w":"remain","p":"v","l":1,"d":"stay the same"},{"w":"remember","p":"v","l":1,"d":"keep in your memory"},{"w":"report","p":"v","l":1,"d":"give information about"},{"w":"require","p":"v","l":1,"d":"need as necessary"},{"w":"research","p":"n","l":1,"d":"careful study of a topic"},{"w":"rich","p":"adj","l":1,"d":"having a lot of money"},{"w":"right","p":"n","l":1,"d":"something you are allowed to do"},{"w":"room","p":"n","l":1,"d":"a space inside a building"},{"w":"rough","p":"adj","l":1,"d":"not smooth"},{"w":"rude","p":"adj","l":1,"d":"not polite"},{"w":"run","p":"v","l":1,"d":"move fast on foot"},{"w":"sad","p":"adj","l":1,"d":"feeling unhappy"},{"w":"safe","p":"adj","l":1,"d":"free from danger"},{"w":"same","p":"adj","l":1,"d":"identical"},{"w":"save","p":"v","l":1,"d":"keep for later; rescue"},{"w":"say","p":"v","l":1,"d":"speak words"},{"w":"scared","p":"adj","l":1,"d":"feeling fear"},{"w":"school","p":"n","l":1,"d":"a place to learn"},{"w":"see","p":"v","l":1,"d":"notice with your eyes"},{"w":"seem","p":"v","l":1,"d":"appear to be"},{"w":"sell","p":"v","l":1,"d":"give for money"},{"w":"send","p":"v","l":1,"d":"make something go somewhere"},{"w":"sense","p":"n","l":1,"d":"a feeling or meaning"},{"w":"serve","p":"v","l":1,"d":"help or provide for"},{"w":"service","p":"n","l":1,"d":"help provided to people"},{"w":"set","p":"v","l":1,"d":"put in a place or position"},{"w":"shallow","p":"adj","l":1,"d":"not deep"},{"w":"share","p":"v","l":1,"d":"give part of something"},{"w":"sharp","p":"adj","l":1,"d":"having a fine edge"},{"w":"short","p":"adj","l":1,"d":"not long or tall"},{"w":"show","p":"v","l":1,"d":"let someone see"},{"w":"sick","p":"adj","l":1,"d":"not feeling well"},{"w":"similar","p":"adj","l":1,"d":"almost the same"},{"w":"simple","p":"adj","l":1,"d":"easy to understand"},{"w":"simply","p":"adv","l":1,"d":"in a simple way"},{"w":"sing","p":"v","l":1,"d":"make music with your voice"},{"w":"single","p":"adj","l":1,"d":"not married; only one"},{"w":"sit","p":"v","l":1,"d":"rest on a seat"},{"w":"sleep","p":"v","l":1,"d":"rest with eyes closed"},{"w":"slow","p":"adj","l":1,"d":"not fast"},{"w":"slowly","p":"adv","l":1,"d":"not quickly"},{"w":"small","p":"adj","l":1,"d":"not large"},{"w":"smart","p":"adj","l":1,"d":"intelligent"},{"w":"smile","p":"v","l":1,"d":"show happiness with your mouth"},{"w":"smooth","p":"adj","l":1,"d":"having an even surface"},{"w":"soft","p":"adj","l":1,"d":"not hard when pressed"},{"w":"sometimes","p":"adv","l":1,"d":"occasionally"},{"w":"somewhat","p":"adv","l":1,"d":"to a small degree"},{"w":"soon","p":"adv","l":1,"d":"in a short time"},{"w":"sound","p":"n","l":1,"d":"something you hear"},{"w":"speak","p":"v","l":1,"d":"talk using words"},{"w":"special","p":"adj","l":1,"d":"different from usual"},{"w":"spend","p":"v","l":1,"d":"use money or time"},{"w":"stand","p":"v","l":1,"d":"be on your feet"},{"w":"start","p":"v","l":1,"d":"begin something"},{"w":"stay","p":"v","l":1,"d":"remain in a place"},{"w":"still","p":"adv","l":1,"d":"continuing until now"},{"w":"stop","p":"v","l":1,"d":"not continue"},{"w":"story","p":"n","l":1,"d":"a tale about events"},{"w":"strange","p":"adj","l":1,"d":"unusual or surprising"},{"w":"street","p":"n","l":1,"d":"a road in a town"},{"w":"strong","p":"adj","l":1,"d":"having great power"},{"w":"student","p":"n","l":1,"d":"a person who studies"},{"w":"study","p":"v","l":1,"d":"learn by reading or practice"},{"w":"suddenly","p":"adv","l":1,"d":"quickly and unexpectedly"},{"w":"suggest","p":"v","l":1,"d":"offer an idea"},{"w":"sure","p":"adj","l":1,"d":"certain about something"},{"w":"swim","p":"v","l":1,"d":"move through water"},{"w":"talk","p":"v","l":1,"d":"speak with someone"},{"w":"tall","p":"adj","l":1,"d":"greater than average height"},{"w":"teach","p":"v","l":1,"d":"help someone learn"},{"w":"teacher","p":"n","l":1,"d":"a person who teaches"},{"w":"team","p":"n","l":1,"d":"a group who work together"},{"w":"tell","p":"v","l":1,"d":"say something to someone"},{"w":"then","p":"adv","l":1,"d":"at that time"},{"w":"there","p":"adv","l":1,"d":"in that place"},{"w":"thing","p":"n","l":1,"d":"an object or item"},{"w":"think","p":"v","l":1,"d":"use your mind to consider"},{"w":"thirsty","p":"adj","l":1,"d":"needing a drink"},{"w":"throw","p":"v","l":1,"d":"send through the air"},{"w":"time","p":"n","l":1,"d":"a period that things happen in"},{"w":"tired","p":"adj","l":1,"d":"needing rest"},{"w":"today","p":"adv","l":1,"d":"on this day"},{"w":"together","p":"adv","l":1,"d":"with each other"},{"w":"tomorrow","p":"adv","l":1,"d":"the day after today"},{"w":"too","p":"adv","l":1,"d":"as well"},{"w":"totally","p":"adv","l":1,"d":"completely"},{"w":"touch","p":"v","l":1,"d":"put your hand on"},{"w":"travel","p":"v","l":1,"d":"go to another place"},{"w":"true","p":"adj","l":1,"d":"in agreement with fact"},{"w":"try","p":"v","l":1,"d":"attempt to do something"},{"w":"turn","p":"v","l":1,"d":"change direction"},{"w":"ugly","p":"adj","l":1,"d":"not attractive"},{"w":"uncomfortable","p":"adj","l":1,"d":"not comfortable"},{"w":"understand","p":"v","l":1,"d":"know the meaning"},{"w":"up","p":"adv","l":1,"d":"toward a higher place"},{"w":"use","p":"v","l":1,"d":"employ for a purpose"},{"w":"usually","p":"adv","l":1,"d":"most of the time"},{"w":"very","p":"adv","l":1,"d":"to a great degree"},{"w":"visit","p":"v","l":1,"d":"go to see someone"},{"w":"wait","p":"v","l":1,"d":"stay until something happens"},{"w":"walk","p":"v","l":1,"d":"move on foot slowly"},{"w":"want","p":"v","l":1,"d":"desire something"},{"w":"war","p":"n","l":1,"d":"armed fighting between groups"},{"w":"wash","p":"v","l":1,"d":"clean with water"},{"w":"watch","p":"v","l":1,"d":"look at carefully"},{"w":"water","p":"v","l":1,"d":"give water to plants"},{"w":"way","p":"n","l":1,"d":"a method or path"},{"w":"weak","p":"adj","l":1,"d":"not strong"},{"w":"wear","p":"v","l":1,"d":"have clothes on"},{"w":"week","p":"n","l":1,"d":"seven days"},{"w":"well","p":"adv","l":1,"d":"in a good way"},{"w":"wide","p":"adj","l":1,"d":"large from side to side"},{"w":"win","p":"v","l":1,"d":"be first in a contest"},{"w":"woman","p":"n","l":1,"d":"an adult female human"},{"w":"work","p":"v","l":1,"d":"do a job or task"},{"w":"world","p":"n","l":1,"d":"the earth and everyone on it"},{"w":"write","p":"v","l":1,"d":"put words on paper"},{"w":"wrong","p":"adj","l":1,"d":"not correct"},{"w":"year","p":"n","l":1,"d":"a period of 365 days"},{"w":"yesterday","p":"adv","l":1,"d":"the day before today"},{"w":"young","p":"adj","l":1,"d":"not old"},{"w":"accurate","p":"adj","l":2,"d":"correct and exact"},{"w":"achieve","p":"v","l":2,"d":"succeed in doing something"},{"w":"achievement","p":"n","l":2,"d":"something accomplished successfully"},{"w":"adequate","p":"adj","l":2,"d":"enough for a purpose"},{"w":"advantage","p":"n","l":2,"d":"a benefit over others"},{"w":"affect","p":"v","l":2,"d":"influence or change"},{"w":"aggressive","p":"adj","l":2,"d":"acting with force or anger"},{"w":"ambitious","p":"adj","l":2,"d":"having a strong desire to succeed"},{"w":"analysis","p":"n","l":2,"d":"detailed study of something"},{"w":"anxious","p":"adj","l":2,"d":"worried or nervous"},{"w":"apparently","p":"adv","l":2,"d":"it seems that"},{"w":"apply","p":"v","l":2,"d":"use for a purpose; ask formally"},{"w":"approach","p":"n","l":2,"d":"a way of dealing with something"},{"w":"appropriate","p":"adj","l":2,"d":"suitable for a situation"},{"w":"argue","p":"v","l":2,"d":"disagree using reasons"},{"w":"argument","p":"n","l":2,"d":"a disagreement; a set of reasons"},{"w":"arrange","p":"v","l":2,"d":"put in order; plan"},{"w":"arrive","p":"v","l":2,"d":"get to a place"},{"w":"aspect","p":"n","l":2,"d":"one part of a situation"},{"w":"assume","p":"v","l":2,"d":"think something without proof"},{"w":"assumption","p":"n","l":2,"d":"something believed without proof"},{"w":"attitude","p":"n","l":2,"d":"the way you think or feel"},{"w":"authority","p":"n","l":2,"d":"the power to control others"},{"w":"avoid","p":"v","l":2,"d":"stay away from"},{"w":"awareness","p":"n","l":2,"d":"knowledge of a situation"},{"w":"awkward","p":"adj","l":2,"d":"not comfortable or graceful"},{"w":"background","p":"n","l":2,"d":"a person's past experience"},{"w":"base","p":"v","l":2,"d":"use as a starting point"},{"w":"behave","p":"v","l":2,"d":"act in a certain way"},{"w":"behavior","p":"n","l":2,"d":"the way someone acts"},{"w":"belong","p":"v","l":2,"d":"be a member or owner"},{"w":"benefit","p":"n","l":2,"d":"an advantage gained"},{"w":"capable","p":"adj","l":2,"d":"able to do something well"},{"w":"cause","p":"v","l":2,"d":"make something happen"},{"w":"cautious","p":"adj","l":2,"d":"careful to avoid danger"},{"w":"challenge","p":"n","l":2,"d":"a difficult task"},{"w":"circumstance","p":"n","l":2,"d":"a fact connected to an event"},{"w":"combine","p":"v","l":2,"d":"join together"},{"w":"combined","p":"adj","l":2,"d":"joined together"},{"w":"commitment","p":"n","l":2,"d":"a promise to do something"},{"w":"compare","p":"v","l":2,"d":"look at differences"},{"w":"complete","p":"v","l":2,"d":"finish fully"},{"w":"complex","p":"adj","l":2,"d":"having many connected parts"},{"w":"component","p":"n","l":2,"d":"a part of a larger whole"},{"w":"concept","p":"n","l":2,"d":"an abstract idea"},{"w":"concern","p":"v","l":2,"d":"worry; relate to"},{"w":"conclusion","p":"n","l":2,"d":"the end result of thinking"},{"w":"confident","p":"adj","l":2,"d":"sure of yourself"},{"w":"confirm","p":"v","l":2,"d":"say something is true"},{"w":"connect","p":"v","l":2,"d":"join two things"},{"w":"consequence","p":"n","l":2,"d":"a result of an action"},{"w":"consequently","p":"adv","l":2,"d":"as a result"},{"w":"consistent","p":"adj","l":2,"d":"always acting the same way"},{"w":"constant","p":"adj","l":2,"d":"happening all the time"},{"w":"contain","p":"v","l":2,"d":"have inside"},{"w":"context","p":"n","l":2,"d":"the situation around an event"},{"w":"contribution","p":"n","l":2,"d":"something given to help"},{"w":"controversy","p":"n","l":2,"d":"public disagreement"},{"w":"convenient","p":"adj","l":2,"d":"easy to use or reach"},{"w":"convince","p":"v","l":2,"d":"make someone believe"},{"w":"cope","p":"v","l":2,"d":"deal successfully with difficulty"},{"w":"creative","p":"adj","l":2,"d":"good at making new things"},{"w":"crisis","p":"n","l":2,"d":"a time of great difficulty"},{"w":"criticism","p":"n","l":2,"d":"comments pointing out faults"},{"w":"curious","p":"adj","l":2,"d":"eager to learn or know"},{"w":"current","p":"adj","l":2,"d":"happening now"},{"w":"decade","p":"n","l":2,"d":"a period of ten years"},{"w":"definition","p":"n","l":2,"d":"an explanation of meaning"},{"w":"degree","p":"n","l":2,"d":"a level or amount; a university title"},{"w":"demand","p":"v","l":2,"d":"ask firmly for something"},{"w":"depend","p":"v","l":2,"d":"rely on someone"},{"w":"dependent","p":"adj","l":2,"d":"needing help from others"},{"w":"describe","p":"v","l":2,"d":"say what something is like"},{"w":"description","p":"n","l":2,"d":"an account of what something is like"},{"w":"design","p":"v","l":2,"d":"plan how something looks"},{"w":"desperate","p":"adj","l":2,"d":"feeling great need or hopelessness"},{"w":"determination","p":"n","l":2,"d":"firmness of purpose"},{"w":"determine","p":"v","l":2,"d":"decide or find out exactly"},{"w":"determined","p":"adj","l":2,"d":"firmly decided"},{"w":"develop","p":"v","l":2,"d":"grow or improve"},{"w":"disadvantage","p":"n","l":2,"d":"an unfavorable condition"},{"w":"discipline","p":"n","l":2,"d":"controlled behavior; a field of study"},{"w":"discover","p":"v","l":2,"d":"find something new"},{"w":"discuss","p":"v","l":2,"d":"talk about a topic"},{"w":"distinct","p":"adj","l":2,"d":"clearly different"},{"w":"distinction","p":"n","l":2,"d":"a difference; special honor"},{"w":"distinguish","p":"v","l":2,"d":"see the difference between"},{"w":"diverse","p":"adj","l":2,"d":"showing variety"},{"w":"diversity","p":"n","l":2,"d":"a range of different things"},{"w":"divide","p":"v","l":2,"d":"split into parts"},{"w":"dramatic","p":"adj","l":2,"d":"sudden and striking"},{"w":"eager","p":"adj","l":2,"d":"wanting to do something very much"},{"w":"earn","p":"v","l":2,"d":"get money by working"},{"w":"economy","p":"n","l":2,"d":"the system of money and trade"},{"w":"efficiency","p":"n","l":2,"d":"working well without waste"},{"w":"efficient","p":"adj","l":2,"d":"working well without waste"},{"w":"elegant","p":"adj","l":2,"d":"graceful and stylish"},{"w":"element","p":"n","l":2,"d":"a basic part of something"},{"w":"emergence","p":"n","l":2,"d":"the process of coming into view"},{"w":"emphasis","p":"n","l":2,"d":"special importance given"},{"w":"enable","p":"v","l":2,"d":"make possible"},{"w":"encourage","p":"v","l":2,"d":"give someone confidence"},{"w":"enormous","p":"adj","l":2,"d":"very large"},{"w":"ensure","p":"v","l":2,"d":"make certain"},{"w":"environment","p":"n","l":2,"d":"the natural world around us"},{"w":"equipment","p":"n","l":2,"d":"tools needed for a task"},{"w":"equivalent","p":"adj","l":2,"d":"equal in value"},{"w":"essential","p":"adj","l":2,"d":"absolutely necessary"},{"w":"essentially","p":"adv","l":2,"d":"basically"},{"w":"establish","p":"v","l":2,"d":"start something official"},{"w":"estimate","p":"v","l":2,"d":"guess an amount"},{"w":"evidence","p":"n","l":2,"d":"facts that prove something"},{"w":"evolution","p":"n","l":2,"d":"gradual development over time"},{"w":"examine","p":"v","l":2,"d":"look at closely"},{"w":"exception","p":"n","l":2,"d":"something that does not follow a rule"},{"w":"exhausted","p":"adj","l":2,"d":"extremely tired"},{"w":"exist","p":"v","l":2,"d":"be real"},{"w":"expand","p":"v","l":2,"d":"become larger"},{"w":"expansion","p":"n","l":2,"d":"the process of becoming larger"},{"w":"expect","p":"v","l":2,"d":"think something will happen"},{"w":"expectation","p":"n","l":2,"d":"a belief about the future"},{"w":"experience","p":"v","l":2,"d":"go through something"},{"w":"expertise","p":"n","l":2,"d":"special skill or knowledge"},{"w":"explore","p":"v","l":2,"d":"travel to learn about"},{"w":"exposure","p":"n","l":2,"d":"being affected by something"},{"w":"express","p":"v","l":2,"d":"show a feeling or idea"},{"w":"extend","p":"v","l":2,"d":"make longer"},{"w":"extensive","p":"adj","l":2,"d":"covering a large area"},{"w":"external","p":"adj","l":2,"d":"on the outside"},{"w":"extreme","p":"adj","l":2,"d":"very great in degree"},{"w":"face","p":"v","l":2,"d":"deal with a problem"},{"w":"factor","p":"n","l":2,"d":"a cause of a result"},{"w":"fail","p":"v","l":2,"d":"not succeed"},{"w":"fascinating","p":"adj","l":2,"d":"extremely interesting"},{"w":"feature","p":"n","l":2,"d":"a distinctive part"},{"w":"focus","p":"v","l":2,"d":"give full attention"},{"w":"force","p":"v","l":2,"d":"make someone do something"},{"w":"form","p":"v","l":2,"d":"create or shape"},{"w":"fortunate","p":"adj","l":2,"d":"having good luck"},{"w":"framework","p":"n","l":2,"d":"a basic structure"},{"w":"frequent","p":"adj","l":2,"d":"happening often"},{"w":"function","p":"n","l":2,"d":"the purpose something serves"},{"w":"furthermore","p":"adv","l":2,"d":"in addition"},{"w":"gain","p":"v","l":2,"d":"get more of something"},{"w":"generation","p":"n","l":2,"d":"people born around the same time"},{"w":"generous","p":"adj","l":2,"d":"willing to give freely"},{"w":"genuine","p":"adj","l":2,"d":"really what it is said to be"},{"w":"goal","p":"n","l":2,"d":"something you aim to achieve"},{"w":"gradual","p":"adj","l":2,"d":"happening slowly over time"},{"w":"gradually","p":"adv","l":2,"d":"slowly over time"},{"w":"grateful","p":"adj","l":2,"d":"feeling thankful"},{"w":"handle","p":"v","l":2,"d":"deal with something"},{"w":"however","p":"adv","l":2,"d":"but; on the other hand"},{"w":"hypothesis","p":"n","l":2,"d":"an idea to be tested"},{"w":"identical","p":"adj","l":2,"d":"exactly the same"},{"w":"identify","p":"v","l":2,"d":"recognize who or what"},{"w":"identity","p":"n","l":2,"d":"who or what someone is"},{"w":"ignore","p":"v","l":2,"d":"not pay attention to"},{"w":"imagine","p":"v","l":2,"d":"form a picture in your mind"},{"w":"immediate","p":"adj","l":2,"d":"happening right away"},{"w":"impact","p":"n","l":2,"d":"a strong effect"},{"w":"implication","p":"n","l":2,"d":"a possible consequence"},{"w":"impose","p":"v","l":2,"d":"force something on someone"},{"w":"improve","p":"v","l":2,"d":"make better"},{"w":"incident","p":"n","l":2,"d":"an event, often minor"},{"w":"increase","p":"v","l":2,"d":"become more"},{"w":"increasingly","p":"adv","l":2,"d":"more and more"},{"w":"independent","p":"adj","l":2,"d":"not controlled by others"},{"w":"indicate","p":"v","l":2,"d":"show or point out"},{"w":"individual","p":"n","l":2,"d":"a single person"},{"w":"inequality","p":"n","l":2,"d":"lack of fairness between groups"},{"w":"inevitable","p":"adj","l":2,"d":"certain to happen"},{"w":"influence","p":"v","l":2,"d":"affect someone's actions"},{"w":"influential","p":"adj","l":2,"d":"having great effect"},{"w":"inform","p":"v","l":2,"d":"give information"},{"w":"initial","p":"adj","l":2,"d":"happening at the beginning"},{"w":"initiative","p":"n","l":2,"d":"a new plan of action"},{"w":"insight","p":"n","l":2,"d":"a clear understanding"},{"w":"institution","p":"n","l":2,"d":"a large established organization"},{"w":"integration","p":"n","l":2,"d":"combining parts into a whole"},{"w":"intend","p":"v","l":2,"d":"plan to do"},{"w":"intense","p":"adj","l":2,"d":"very strong in degree"},{"w":"interaction","p":"n","l":2,"d":"communication between people"},{"w":"internal","p":"adj","l":2,"d":"on the inside"},{"w":"interpretation","p":"n","l":2,"d":"an explanation of meaning"},{"w":"introduce","p":"v","l":2,"d":"present for the first time"},{"w":"invest","p":"v","l":2,"d":"put money in for profit"},{"w":"investment","p":"n","l":2,"d":"money put in for future gain"},{"w":"involve","p":"v","l":2,"d":"include as part"},{"w":"issue","p":"v","l":2,"d":"give out officially"},{"w":"justice","p":"n","l":2,"d":"fair treatment of people"},{"w":"justify","p":"v","l":2,"d":"show a good reason for"},{"w":"knowledge","p":"n","l":2,"d":"information and understanding"},{"w":"legitimate","p":"adj","l":2,"d":"allowed by law or rules"},{"w":"maintain","p":"v","l":2,"d":"keep something the same"},{"w":"manage","p":"v","l":2,"d":"be in charge of"},{"w":"mark","p":"v","l":2,"d":"put a sign on"},{"w":"massive","p":"adj","l":2,"d":"very large and heavy"},{"w":"match","p":"v","l":2,"d":"be the same as"},{"w":"mature","p":"adj","l":2,"d":"fully developed"},{"w":"measure","p":"v","l":2,"d":"find the size of"},{"w":"mechanism","p":"n","l":2,"d":"a system that produces a result"},{"w":"mental","p":"adj","l":2,"d":"related to the mind"},{"w":"mention","p":"v","l":2,"d":"refer to briefly"},{"w":"methodology","p":"n","l":2,"d":"a system of methods"},{"w":"minor","p":"adj","l":2,"d":"not very important"},{"w":"moderate","p":"adj","l":2,"d":"not extreme"},{"w":"moreover","p":"adv","l":2,"d":"in addition"},{"w":"motivation","p":"n","l":2,"d":"a reason to do something"},{"w":"negative","p":"adj","l":2,"d":"not positive; harmful"},{"w":"network","p":"n","l":2,"d":"a connected system"},{"w":"nevertheless","p":"adv","l":2,"d":"despite that"},{"w":"nonetheless","p":"adv","l":2,"d":"even so"},{"w":"notable","p":"adj","l":2,"d":"worth noticing"},{"w":"notice","p":"v","l":2,"d":"become aware of"},{"w":"obligation","p":"n","l":2,"d":"a duty to do something"},{"w":"obtain","p":"v","l":2,"d":"get something"},{"w":"obvious","p":"adj","l":2,"d":"easy to see or understand"},{"w":"occasional","p":"adj","l":2,"d":"happening sometimes"},{"w":"occur","p":"v","l":2,"d":"happen"},{"w":"operate","p":"v","l":2,"d":"work or run a machine"},{"w":"opportunity","p":"n","l":2,"d":"a chance to do something"},{"w":"optimistic","p":"adj","l":2,"d":"hopeful about the future"},{"w":"ordinary","p":"adj","l":2,"d":"not special or unusual"},{"w":"organize","p":"v","l":2,"d":"arrange in order"},{"w":"otherwise","p":"adv","l":2,"d":"in a different way"},{"w":"outcome","p":"n","l":2,"d":"the result of an event"},{"w":"outstanding","p":"adj","l":2,"d":"extremely good"},{"w":"overall","p":"adj","l":2,"d":"including everything"},{"w":"participate","p":"v","l":2,"d":"take part in"},{"w":"participation","p":"n","l":2,"d":"taking part in something"},{"w":"particular","p":"adj","l":2,"d":"specific; special"},{"w":"passionate","p":"adj","l":2,"d":"having strong feelings"},{"w":"patient","p":"adj","l":2,"d":"able to wait calmly"},{"w":"perception","p":"n","l":2,"d":"the way something is understood"},{"w":"perform","p":"v","l":2,"d":"do a task; act on stage"},{"w":"permanent","p":"adj","l":2,"d":"lasting forever"},{"w":"persistent","p":"adj","l":2,"d":"continuing firmly"},{"w":"perspective","p":"n","l":2,"d":"a point of view"},{"w":"persuade","p":"v","l":2,"d":"make someone agree"},{"w":"phenomenon","p":"n","l":2,"d":"something observed to happen"},{"w":"philosophy","p":"n","l":2,"d":"the study of basic ideas"},{"w":"plan","p":"v","l":2,"d":"decide in advance"},{"w":"positive","p":"adj","l":2,"d":"good; showing agreement"},{"w":"potential","p":"adj","l":2,"d":"possible but not yet real"},{"w":"poverty","p":"n","l":2,"d":"the state of being very poor"},{"w":"practical","p":"adj","l":2,"d":"useful in a real situation"},{"w":"precise","p":"adj","l":2,"d":"exact and accurate"},{"w":"prefer","p":"v","l":2,"d":"like better"},{"w":"prepare","p":"v","l":2,"d":"get ready"},{"w":"present","p":"v","l":2,"d":"show or give"},{"w":"prevent","p":"v","l":2,"d":"stop from happening"},{"w":"primarily","p":"adv","l":2,"d":"mainly"},{"w":"primary","p":"adj","l":2,"d":"most important"},{"w":"prior","p":"adj","l":2,"d":"coming before"},{"w":"priority","p":"n","l":2,"d":"something treated as most important"},{"w":"procedure","p":"n","l":2,"d":"a set way of doing something"},{"w":"produce","p":"v","l":2,"d":"make or create"},{"w":"professional","p":"adj","l":2,"d":"relating to skilled work"},{"w":"prominent","p":"adj","l":2,"d":"important and well known"},{"w":"promote","p":"v","l":2,"d":"help something grow; advertise"},{"w":"proper","p":"adj","l":2,"d":"correct and suitable"},{"w":"proportion","p":"n","l":2,"d":"a part of a whole"},{"w":"propose","p":"v","l":2,"d":"suggest an idea"},{"w":"prospect","p":"n","l":2,"d":"a possibility of future success"},{"w":"protect","p":"v","l":2,"d":"keep safe"},{"w":"prove","p":"v","l":2,"d":"show something is true"},{"w":"provide","p":"v","l":2,"d":"give what is needed"},{"w":"publish","p":"v","l":2,"d":"make public in print"},{"w":"purpose","p":"n","l":2,"d":"the reason for doing something"},{"w":"quality","p":"n","l":2,"d":"how good or bad something is"},{"w":"random","p":"adj","l":2,"d":"without a clear pattern"},{"w":"range","p":"n","l":2,"d":"the limits of variation"},{"w":"rare","p":"adj","l":2,"d":"not common"},{"w":"rate","p":"n","l":2,"d":"a measure per unit"},{"w":"reaction","p":"n","l":2,"d":"a response to something"},{"w":"realistic","p":"adj","l":2,"d":"based on what is possible"},{"w":"realize","p":"v","l":2,"d":"become fully aware"},{"w":"recall","p":"v","l":2,"d":"remember"},{"w":"receive","p":"v","l":2,"d":"get something given"},{"w":"recent","p":"adj","l":2,"d":"happening not long ago"},{"w":"recognition","p":"n","l":2,"d":"being noticed for achievement"},{"w":"recognize","p":"v","l":2,"d":"know from before"},{"w":"recommend","p":"v","l":2,"d":"suggest as good"},{"w":"reduce","p":"v","l":2,"d":"make smaller"},{"w":"refer","p":"v","l":2,"d":"mention or direct to"},{"w":"reflect","p":"v","l":2,"d":"think carefully; show an image"},{"w":"regard","p":"v","l":2,"d":"consider in a certain way"},{"w":"regulation","p":"n","l":2,"d":"an official rule"},{"w":"reject","p":"v","l":2,"d":"refuse to accept"},{"w":"relate","p":"v","l":2,"d":"connect two things"},{"w":"relationship","p":"n","l":2,"d":"the way two things are connected"},{"w":"relative","p":"adj","l":2,"d":"considered in relation to others"},{"w":"relatively","p":"adv","l":2,"d":"compared with others"},{"w":"release","p":"v","l":2,"d":"let go free"},{"w":"relevance","p":"n","l":2,"d":"how connected something is"},{"w":"relevant","p":"adj","l":2,"d":"connected to the matter"},{"w":"reliable","p":"adj","l":2,"d":"able to be trusted"},{"w":"reliance","p":"n","l":2,"d":"depending on someone"},{"w":"reluctant","p":"adj","l":2,"d":"unwilling to do something"},{"w":"rely","p":"v","l":2,"d":"depend on"},{"w":"remarkable","p":"adj","l":2,"d":"worth noticing; extraordinary"},{"w":"remove","p":"v","l":2,"d":"take away"},{"w":"repeat","p":"v","l":2,"d":"say or do again"},{"w":"replace","p":"v","l":2,"d":"put something new instead"},{"w":"represent","p":"v","l":2,"d":"stand for; act on behalf of"},{"w":"requirement","p":"n","l":2,"d":"something needed"},{"w":"resource","p":"n","l":2,"d":"something useful, like money or material"},{"w":"respond","p":"v","l":2,"d":"reply"},{"w":"responsibility","p":"n","l":2,"d":"a duty to take care of"},{"w":"responsible","p":"adj","l":2,"d":"having a duty to take care of"},{"w":"restriction","p":"n","l":2,"d":"a limit placed on something"},{"w":"result","p":"v","l":2,"d":"happen as an effect"},{"w":"reveal","p":"v","l":2,"d":"make known"},{"w":"review","p":"v","l":2,"d":"examine again"},{"w":"rigid","p":"adj","l":2,"d":"not able to bend"},{"w":"scenario","p":"n","l":2,"d":"a possible sequence of events"},{"w":"scope","p":"n","l":2,"d":"the range of a subject"},{"w":"search","p":"v","l":2,"d":"look for carefully"},{"w":"sector","p":"n","l":2,"d":"a part of an economy or society"},{"w":"secure","p":"adj","l":2,"d":"safe and protected"},{"w":"select","p":"v","l":2,"d":"choose carefully"},{"w":"separate","p":"v","l":2,"d":"keep apart"},{"w":"settle","p":"v","l":2,"d":"decide finally; live somewhere"},{"w":"shape","p":"v","l":2,"d":"form into a particular form"},{"w":"significance","p":"n","l":2,"d":"importance or meaning"},{"w":"significant","p":"adj","l":2,"d":"important; large enough to notice"},{"w":"significantly","p":"adv","l":2,"d":"to a noticeable degree"},{"w":"sincere","p":"adj","l":2,"d":"honest in feelings"},{"w":"skeptical","p":"adj","l":2,"d":"doubting the truth of something"},{"w":"solution","p":"n","l":2,"d":"an answer to a problem"},{"w":"solve","p":"v","l":2,"d":"find the answer to"},{"w":"sophisticated","p":"adj","l":2,"d":"highly developed or complex"},{"w":"sort","p":"v","l":2,"d":"arrange into groups"},{"w":"stability","p":"n","l":2,"d":"the state of being steady"},{"w":"stable","p":"adj","l":2,"d":"not likely to change or fall"},{"w":"standard","p":"n","l":2,"d":"a level of quality expected"},{"w":"statistic","p":"n","l":2,"d":"a fact from numerical data"},{"w":"straightforward","p":"adj","l":2,"d":"simple and clear"},{"w":"strategy","p":"n","l":2,"d":"a plan to achieve a goal"},{"w":"structure","p":"n","l":2,"d":"the way parts are arranged"},{"w":"substance","p":"n","l":2,"d":"a physical material"},{"w":"substantial","p":"adj","l":2,"d":"large in size or amount"},{"w":"succeed","p":"v","l":2,"d":"achieve a goal"},{"w":"suffer","p":"v","l":2,"d":"feel pain or difficulty"},{"w":"sufficient","p":"adj","l":2,"d":"enough for a need"},{"w":"summary","p":"n","l":2,"d":"a short statement of main points"},{"w":"support","p":"v","l":2,"d":"help or agree with"},{"w":"survive","p":"v","l":2,"d":"continue to live"},{"w":"suspicious","p":"adj","l":2,"d":"feeling something is wrong"},{"w":"temporary","p":"adj","l":2,"d":"lasting only a short time"},{"w":"tend","p":"v","l":2,"d":"be likely to"},{"w":"tendency","p":"n","l":2,"d":"a likely way of behaving"},{"w":"theory","p":"n","l":2,"d":"an idea that explains something"},{"w":"therefore","p":"adv","l":2,"d":"for that reason"},{"w":"thorough","p":"adj","l":2,"d":"complete and careful"},{"w":"thus","p":"adv","l":2,"d":"as a result"},{"w":"transition","p":"n","l":2,"d":"a change from one state to another"},{"w":"treat","p":"v","l":2,"d":"behave toward; deal with"},{"w":"tremendous","p":"adj","l":2,"d":"very great in amount"},{"w":"trend","p":"n","l":2,"d":"a general direction of change"},{"w":"typical","p":"adj","l":2,"d":"showing the usual features"},{"w":"ultimately","p":"adv","l":2,"d":"in the end"},{"w":"unique","p":"adj","l":2,"d":"being the only one of its kind"},{"w":"urgent","p":"adj","l":2,"d":"needing immediate action"},{"w":"vague","p":"adj","l":2,"d":"not clear or definite"},{"w":"valid","p":"adj","l":2,"d":"legally or logically acceptable"},{"w":"variable","p":"n","l":2,"d":"something that can change"},{"w":"various","p":"adj","l":2,"d":"of different kinds"},{"w":"version","p":"n","l":2,"d":"a form of something"},{"w":"vital","p":"adj","l":2,"d":"extremely important"},{"w":"warn","p":"v","l":2,"d":"tell of danger ahead"},{"w":"abolish","p":"v","l":3,"d":"officially end a law or system"},{"w":"abstraction","p":"n","l":3,"d":"an idea not linked to a real example"},{"w":"abundant","p":"adj","l":3,"d":"existing in large quantities"},{"w":"accelerate","p":"v","l":3,"d":"speed up"},{"w":"accordingly","p":"adv","l":3,"d":"in a way that fits"},{"w":"accumulate","p":"v","l":3,"d":"gather over time"},{"w":"acknowledge","p":"v","l":3,"d":"admit that something is true"},{"w":"adverse","p":"adj","l":3,"d":"harmful or unfavorable"},{"w":"adversity","p":"n","l":3,"d":"a difficult or unfortunate situation"},{"w":"aftermath","p":"n","l":3,"d":"the period after a bad event"},{"w":"alleviate","p":"v","l":3,"d":"make suffering less severe"},{"w":"allocate","p":"v","l":3,"d":"give a share for a purpose"},{"w":"altruistic","p":"adj","l":3,"d":"unselfishly caring for others"},{"w":"ambiguity","p":"n","l":3,"d":"when something has more than one meaning"},{"w":"ambiguous","p":"adj","l":3,"d":"having more than one meaning"},{"w":"ambivalence","p":"n","l":3,"d":"having mixed feelings about something"},{"w":"ameliorate","p":"v","l":3,"d":"make a bad situation better"},{"w":"anomaly","p":"n","l":3,"d":"something that differs from the normal"},{"w":"antithesis","p":"n","l":3,"d":"the exact opposite of something"},{"w":"apathy","p":"n","l":3,"d":"lack of interest or concern"},{"w":"arbitrary","p":"adj","l":3,"d":"based on random choice"},{"w":"arduous","p":"adj","l":3,"d":"involving great effort"},{"w":"arguably","p":"adv","l":3,"d":"it can be argued that"},{"w":"articulate","p":"v","l":3,"d":"express clearly in words"},{"w":"articulation","p":"n","l":3,"d":"clear expression of an idea"},{"w":"assert","p":"v","l":3,"d":"state firmly"},{"w":"assimilate","p":"v","l":3,"d":"absorb and understand fully"},{"w":"astute","p":"adj","l":3,"d":"having sharp judgment"},{"w":"attribute","p":"v","l":3,"d":"say something is caused by"},{"w":"audacious","p":"adj","l":3,"d":"boldly daring"},{"w":"augment","p":"v","l":3,"d":"make something greater"},{"w":"autonomous","p":"adj","l":3,"d":"self-governing"},{"w":"autonomy","p":"n","l":3,"d":"the right to self-govern"},{"w":"benevolent","p":"adj","l":3,"d":"kind and generous"},{"w":"candid","p":"adj","l":3,"d":"honest and direct"},{"w":"capitulation","p":"n","l":3,"d":"the act of giving up"},{"w":"catalyst","p":"n","l":3,"d":"something that causes change"},{"w":"circumvent","p":"v","l":3,"d":"find a way around"},{"w":"coherence","p":"n","l":3,"d":"the quality of being logical"},{"w":"coherent","p":"adj","l":3,"d":"logical and consistent"},{"w":"coincide","p":"v","l":3,"d":"happen at the same time"},{"w":"compelling","p":"adj","l":3,"d":"forcing attention or belief"},{"w":"compensate","p":"v","l":3,"d":"make up for a loss"},{"w":"compliance","p":"n","l":3,"d":"acting according to rules"},{"w":"comprehensive","p":"adj","l":3,"d":"complete and including everything"},{"w":"comprise","p":"v","l":3,"d":"be made up of"},{"w":"conceal","p":"v","l":3,"d":"hide something"},{"w":"conceivable","p":"adj","l":3,"d":"able to be imagined"},{"w":"conceivably","p":"adv","l":3,"d":"possibly"},{"w":"concise","p":"adj","l":3,"d":"giving information briefly"},{"w":"condemn","p":"v","l":3,"d":"express strong disapproval"},{"w":"connotation","p":"n","l":3,"d":"an implied meaning of a word"},{"w":"constitute","p":"v","l":3,"d":"form or make up"},{"w":"contentious","p":"adj","l":3,"d":"causing disagreement"},{"w":"contradict","p":"v","l":3,"d":"say the opposite of"},{"w":"controversial","p":"adj","l":3,"d":"causing public disagreement"},{"w":"conundrum","p":"n","l":3,"d":"a confusing and difficult problem"},{"w":"convey","p":"v","l":3,"d":"communicate an idea"},{"w":"correlation","p":"n","l":3,"d":"a mutual relationship between things"},{"w":"corroborate","p":"v","l":3,"d":"confirm with evidence"},{"w":"counteract","p":"v","l":3,"d":"reduce the effect of"},{"w":"credibility","p":"n","l":3,"d":"the quality of being believable"},{"w":"cryptic","p":"adj","l":3,"d":"having a hidden or unclear meaning"},{"w":"cumulative","p":"adj","l":3,"d":"increasing by successive additions"},{"w":"deficiency","p":"n","l":3,"d":"a lack or shortage"},{"w":"deliberate","p":"adj","l":3,"d":"done on purpose"},{"w":"delineate","p":"v","l":3,"d":"describe precisely"},{"w":"delineation","p":"n","l":3,"d":"the description of the exact form"},{"w":"demographic","p":"n","l":3,"d":"a section of a population"},{"w":"denomination","p":"n","l":3,"d":"a religious group; a currency unit"},{"w":"denote","p":"v","l":3,"d":"be a sign of"},{"w":"deprivation","p":"n","l":3,"d":"the lack of something needed"},{"w":"deprive","p":"v","l":3,"d":"take something away from"},{"w":"derive","p":"v","l":3,"d":"obtain from a source"},{"w":"detriment","p":"n","l":3,"d":"harm or damage"},{"w":"detrimental","p":"adj","l":3,"d":"causing harm"},{"w":"dichotomy","p":"n","l":3,"d":"a division into two opposite parts"},{"w":"diligent","p":"adj","l":3,"d":"showing careful, persistent effort"},{"w":"diminish","p":"v","l":3,"d":"make or become less"},{"w":"discreet","p":"adj","l":3,"d":"careful not to attract attention"},{"w":"disparate","p":"adj","l":3,"d":"essentially different in kind"},{"w":"disparity","p":"n","l":3,"d":"a great difference"},{"w":"disseminate","p":"v","l":3,"d":"spread widely"},{"w":"dissent","p":"n","l":3,"d":"disagreement with an opinion"},{"w":"divergence","p":"n","l":3,"d":"the process of moving apart"},{"w":"dubious","p":"adj","l":3,"d":"not sure or certain"},{"w":"eclectic","p":"adj","l":3,"d":"choosing from many different sources"},{"w":"egalitarianism","p":"n","l":3,"d":"the belief in equality for all"},{"w":"elaborate","p":"v","l":3,"d":"explain in more detail"},{"w":"eliminate","p":"v","l":3,"d":"remove completely"},{"w":"elucidate","p":"v","l":3,"d":"make clear by explaining"},{"w":"elusive","p":"adj","l":3,"d":"difficult to find or catch"},{"w":"embodiment","p":"n","l":3,"d":"a clear example of an idea"},{"w":"emerge","p":"v","l":3,"d":"come out into view"},{"w":"empathize","p":"v","l":3,"d":"understand another's feelings"},{"w":"empirical","p":"adj","l":3,"d":"based on observation or experiment"},{"w":"encompass","p":"v","l":3,"d":"include a wide range of"},{"w":"endure","p":"v","l":3,"d":"suffer patiently; last long"},{"w":"enhance","p":"v","l":3,"d":"improve the quality of"},{"w":"envisage","p":"v","l":3,"d":"imagine as a future possibility"},{"w":"epitome","p":"n","l":3,"d":"a perfect example of something"},{"w":"equilibrium","p":"n","l":3,"d":"a state of balance"},{"w":"equivocal","p":"adj","l":3,"d":"open to more than one interpretation"},{"w":"eradicate","p":"v","l":3,"d":"destroy completely"},{"w":"erratic","p":"adj","l":3,"d":"not consistent or predictable"},{"w":"esoteric","p":"adj","l":3,"d":"understood by only a few people"},{"w":"euphoria","p":"n","l":3,"d":"a feeling of intense happiness"},{"w":"exacerbate","p":"v","l":3,"d":"make a problem worse"},{"w":"exacerbation","p":"n","l":3,"d":"the act of making worse"},{"w":"exemplar","p":"n","l":3,"d":"a typical example"},{"w":"exemplary","p":"adj","l":3,"d":"serving as a desirable model"},{"w":"exemplify","p":"v","l":3,"d":"be a typical example of"},{"w":"exhaustive","p":"adj","l":3,"d":"complete and thorough"},{"w":"explicit","p":"adj","l":3,"d":"clearly stated"},{"w":"exploitation","p":"n","l":3,"d":"unfair use of someone for gain"},{"w":"extraneous","p":"adj","l":3,"d":"not relevant to the subject"},{"w":"facade","p":"n","l":3,"d":"a false outward appearance"},{"w":"facilitate","p":"v","l":3,"d":"make an action easier"},{"w":"fallacy","p":"n","l":3,"d":"a mistaken belief"},{"w":"feasibility","p":"n","l":3,"d":"the possibility of being done"},{"w":"fluctuate","p":"v","l":3,"d":"change irregularly"},{"w":"formidable","p":"adj","l":3,"d":"inspiring fear or respect"},{"w":"foster","p":"v","l":3,"d":"encourage development of"},{"w":"fragment","p":"v","l":3,"d":"break into pieces"},{"w":"frugal","p":"adj","l":3,"d":"careful with money"},{"w":"gratuitous","p":"adj","l":3,"d":"uncalled for; unnecessary"},{"w":"hierarchy","p":"n","l":3,"d":"a system ranked by level"},{"w":"hinder","p":"v","l":3,"d":"create difficulty for"},{"w":"hindrance","p":"n","l":3,"d":"something that delays progress"},{"w":"homogeneity","p":"n","l":3,"d":"the quality of being similar"},{"w":"hypocrisy","p":"n","l":3,"d":"pretending to have virtues you lack"},{"w":"hypothetical","p":"adj","l":3,"d":"based on a suggested idea"},{"w":"impartial","p":"adj","l":3,"d":"treating all sides equally"},{"w":"imperative","p":"n","l":3,"d":"something extremely important"},{"w":"implicate","p":"v","l":3,"d":"show someone is involved"},{"w":"implicit","p":"adj","l":3,"d":"understood without being stated"},{"w":"imply","p":"v","l":3,"d":"suggest without stating"},{"w":"imprudent","p":"adj","l":3,"d":"not showing care about consequences"},{"w":"inadvertent","p":"adj","l":3,"d":"not resulting from careful thought"},{"w":"inadvertently","p":"adv","l":3,"d":"without intending to"},{"w":"incentive","p":"n","l":3,"d":"something that motivates action"},{"w":"incessant","p":"adj","l":3,"d":"never stopping"},{"w":"inclination","p":"n","l":3,"d":"a natural tendency"},{"w":"inconsistency","p":"n","l":3,"d":"lack of agreement between parts"},{"w":"incorporate","p":"v","l":3,"d":"include as part of a whole"},{"w":"infer","p":"v","l":3,"d":"reach a conclusion from evidence"},{"w":"inference","p":"n","l":3,"d":"a conclusion reached from evidence"},{"w":"ingenuity","p":"n","l":3,"d":"cleverness in inventing things"},{"w":"inherent","p":"adj","l":3,"d":"existing as a natural part"},{"w":"inherently","p":"adv","l":3,"d":"in an essential way"},{"w":"inhibit","p":"v","l":3,"d":"hold back or restrain"},{"w":"innate","p":"adj","l":3,"d":"existing from birth"},{"w":"innuendo","p":"n","l":3,"d":"an indirect remark about something"},{"w":"instigate","p":"v","l":3,"d":"bring about an occurrence"},{"w":"integrate","p":"v","l":3,"d":"combine into a whole"},{"w":"integrity","p":"n","l":3,"d":"the quality of being honest"},{"w":"intervene","p":"v","l":3,"d":"come between to change events"},{"w":"intricacy","p":"n","l":3,"d":"the state of being complicated"},{"w":"intrinsic","p":"adj","l":3,"d":"belonging naturally"},{"w":"jeopardize","p":"v","l":3,"d":"put at risk"},{"w":"jurisdiction","p":"n","l":3,"d":"the official power to make decisions"},{"w":"juxtaposition","p":"n","l":3,"d":"placing things side by side for contrast"},{"w":"legitimacy","p":"n","l":3,"d":"the quality of being legal or valid"},{"w":"lucid","p":"adj","l":3,"d":"clear and easy to understand"},{"w":"magnitude","p":"n","l":3,"d":"the great size of something"},{"w":"malicious","p":"adj","l":3,"d":"intending to do harm"},{"w":"manifest","p":"v","l":3,"d":"show clearly"},{"w":"manifestation","p":"n","l":3,"d":"a clear sign of something"},{"w":"mediocrity","p":"n","l":3,"d":"the state of being average"},{"w":"meticulous","p":"adj","l":3,"d":"showing great attention to detail"},{"w":"meticulously","p":"adv","l":3,"d":"with great attention to detail"},{"w":"mitigate","p":"v","l":3,"d":"make less severe"},{"w":"mundane","p":"adj","l":3,"d":"lacking excitement; ordinary"},{"w":"negate","p":"v","l":3,"d":"make ineffective"},{"w":"notorious","p":"adj","l":3,"d":"famous for something bad"},{"w":"nuance","p":"n","l":3,"d":"a subtle difference"},{"w":"obscure","p":"adj","l":3,"d":"not clearly understood"},{"w":"obsolescence","p":"n","l":3,"d":"the process of becoming outdated"},{"w":"obsolete","p":"adj","l":3,"d":"no longer in use"},{"w":"obstruct","p":"v","l":3,"d":"block a path or progress"},{"w":"ominous","p":"adj","l":3,"d":"suggesting something bad will happen"},{"w":"opaque","p":"adj","l":3,"d":"not able to be seen through"},{"w":"oscillate","p":"v","l":3,"d":"move back and forth"},{"w":"paradigm","p":"n","l":3,"d":"a typical example or pattern"},{"w":"paradox","p":"n","l":3,"d":"a statement that seems contradictory"},{"w":"parameter","p":"n","l":3,"d":"a limit that defines a system"},{"w":"paramount","p":"adj","l":3,"d":"more important than anything else"},{"w":"paucity","p":"n","l":3,"d":"a small amount of something"},{"w":"perceive","p":"v","l":3,"d":"become aware of through senses"},{"w":"permeate","p":"v","l":3,"d":"spread through every part"},{"w":"perpetuate","p":"v","l":3,"d":"make something continue"},{"w":"perpetuity","p":"n","l":3,"d":"the state of lasting forever"},{"w":"pervasive","p":"adj","l":3,"d":"spreading throughout"},{"w":"plausibility","p":"n","l":3,"d":"the quality of seeming reasonable"},{"w":"plausible","p":"adj","l":3,"d":"seeming reasonable or probable"},{"w":"postulate","p":"v","l":3,"d":"suggest as true without proof"},{"w":"pragmatic","p":"adj","l":3,"d":"dealing with things sensibly"},{"w":"precarious","p":"adj","l":3,"d":"not safe or stable"},{"w":"precede","p":"v","l":3,"d":"come before in time"},{"w":"precedent","p":"n","l":3,"d":"an earlier example used as a guide"},{"w":"predisposition","p":"n","l":3,"d":"a tendency to behave a certain way"},{"w":"predominantly","p":"adv","l":3,"d":"mainly"},{"w":"predominate","p":"v","l":3,"d":"be the main element"},{"w":"premise","p":"n","l":3,"d":"a statement used as a basis"},{"w":"prerequisite","p":"n","l":3,"d":"something required beforehand"},{"w":"prevail","p":"v","l":3,"d":"prove more powerful"},{"w":"prevalent","p":"adj","l":3,"d":"widespread at a time"},{"w":"profound","p":"adj","l":3,"d":"very great; showing deep insight"},{"w":"profoundly","p":"adv","l":3,"d":"very deeply"},{"w":"proliferate","p":"v","l":3,"d":"increase rapidly in number"},{"w":"proliferation","p":"n","l":3,"d":"rapid increase in number"},{"w":"prolific","p":"adj","l":3,"d":"producing much or many"},{"w":"prompt","p":"v","l":3,"d":"cause something to happen"},{"w":"propagate","p":"v","l":3,"d":"spread widely"},{"w":"proponent","p":"n","l":3,"d":"a person who supports an idea"},{"w":"prudence","p":"n","l":3,"d":"careful good judgment"},{"w":"prudent","p":"adj","l":3,"d":"acting with care and thought"},{"w":"quandary","p":"n","l":3,"d":"a state of uncertainty"},{"w":"ramification","p":"n","l":3,"d":"a consequence of an action"},{"w":"rampant","p":"adj","l":3,"d":"spreading uncontrollably"},{"w":"rationale","p":"n","l":3,"d":"the reasons behind a decision"},{"w":"recession","p":"n","l":3,"d":"a period of economic decline"},{"w":"rectify","p":"v","l":3,"d":"put something right"},{"w":"redundancy","p":"n","l":3,"d":"the state of being unnecessary"},{"w":"redundant","p":"adj","l":3,"d":"no longer needed"},{"w":"refute","p":"v","l":3,"d":"prove something wrong"},{"w":"reinforce","p":"v","l":3,"d":"make stronger"},{"w":"reiterate","p":"v","l":3,"d":"say something again"},{"w":"relinquish","p":"v","l":3,"d":"give up control of"},{"w":"render","p":"v","l":3,"d":"cause to become"},{"w":"repercussion","p":"n","l":3,"d":"an indirect consequence"},{"w":"resilience","p":"n","l":3,"d":"the ability to recover quickly"},{"w":"resilient","p":"adj","l":3,"d":"able to recover quickly"},{"w":"resolve","p":"v","l":3,"d":"find a solution to"},{"w":"restrain","p":"v","l":3,"d":"hold back"},{"w":"retain","p":"v","l":3,"d":"keep possession of"},{"w":"reticence","p":"n","l":3,"d":"the quality of being reserved"},{"w":"revoke","p":"v","l":3,"d":"officially cancel"},{"w":"rhetoric","p":"n","l":3,"d":"persuasive speech or writing"},{"w":"rigorous","p":"adj","l":3,"d":"extremely thorough and careful"},{"w":"sanction","p":"n","l":3,"d":"an official penalty or permission"},{"w":"scrutinize","p":"v","l":3,"d":"examine very closely"},{"w":"scrutiny","p":"n","l":3,"d":"close examination"},{"w":"signify","p":"v","l":3,"d":"be a sign of"},{"w":"simulate","p":"v","l":3,"d":"imitate the appearance of"},{"w":"simultaneously","p":"adv","l":3,"d":"at the same time"},{"w":"skepticism","p":"n","l":3,"d":"doubt about claims"},{"w":"solidarity","p":"n","l":3,"d":"unity among a group"},{"w":"speculate","p":"v","l":3,"d":"form a theory without proof"},{"w":"speculation","p":"n","l":3,"d":"forming theories without firm evidence"},{"w":"sporadic","p":"adj","l":3,"d":"occurring occasionally"},{"w":"sporadically","p":"adv","l":3,"d":"occasionally"},{"w":"staunch","p":"adj","l":3,"d":"loyal and firm"},{"w":"stipulate","p":"v","l":3,"d":"demand as part of an agreement"},{"w":"subsequently","p":"adv","l":3,"d":"afterward"},{"w":"subsidy","p":"n","l":3,"d":"money given to support something"},{"w":"substantiate","p":"v","l":3,"d":"provide evidence to prove"},{"w":"subtle","p":"adj","l":3,"d":"not obvious; delicate"},{"w":"subvert","p":"v","l":3,"d":"undermine authority"},{"w":"superficial","p":"adj","l":3,"d":"only on the surface"},{"w":"suppress","p":"v","l":3,"d":"prevent from being expressed"},{"w":"sustain","p":"v","l":3,"d":"keep something going"},{"w":"sustainability","p":"n","l":3,"d":"the ability to be maintained"},{"w":"synthesis","p":"n","l":3,"d":"combining parts into a whole"},{"w":"tenable","p":"adj","l":3,"d":"able to be defended"},{"w":"tenacity","p":"n","l":3,"d":"firmness in holding to something"},{"w":"tentatively","p":"adv","l":3,"d":"not certainly; provisionally"},{"w":"thrive","p":"v","l":3,"d":"grow or develop well"},{"w":"transcend","p":"v","l":3,"d":"go beyond the limits of"},{"w":"transient","p":"adj","l":3,"d":"lasting only a short time"},{"w":"transparency","p":"n","l":3,"d":"the quality of being open and clear"},{"w":"turbulence","p":"n","l":3,"d":"violent and unpredictable change"},{"w":"ubiquitous","p":"adj","l":3,"d":"found everywhere"},{"w":"ubiquity","p":"n","l":3,"d":"the fact of being everywhere"},{"w":"undermine","p":"v","l":3,"d":"weaken gradually"},{"w":"underpinning","p":"n","l":3,"d":"a basis or support"},{"w":"undertake","p":"v","l":3,"d":"commit to a task"},{"w":"unequivocally","p":"adv","l":3,"d":"in a way leaving no doubt"},{"w":"unify","p":"v","l":3,"d":"make into a single unit"},{"w":"unprecedented","p":"adj","l":3,"d":"never done or known before"},{"w":"vagueness","p":"n","l":3,"d":"lack of clarity"},{"w":"validate","p":"v","l":3,"d":"check something is correct"},{"w":"verify","p":"v","l":3,"d":"confirm the truth of"},{"w":"versatile","p":"adj","l":3,"d":"having many different uses"},{"w":"volatile","p":"adj","l":3,"d":"likely to change suddenly"},{"w":"vulnerability","p":"n","l":3,"d":"the state of being easily harmed"},{"w":"wary","p":"adj","l":3,"d":"feeling cautious about danger"},{"w":"withstand","p":"v","l":3,"d":"resist successfully"},{"w":"yield","p":"v","l":3,"d":"produce a result; give way"},{"w":"zealous","p":"adj","l":3,"d":"showing great enthusiasm"}];
+/* ============ 20-level honor path ============ */
+const LEVELS = [{"emoji":"🌱","name":"Sprout","tag":"Planting the first seeds of English","cost":0},{"emoji":"🐣","name":"Hatchling","tag":"Cracking out of the shell","cost":40},{"emoji":"🧭","name":"Wanderer","tag":"Finding your way around new words","cost":70},{"emoji":"🔤","name":"Word Gatherer","tag":"Collecting vocabulary like treasure","cost":100},{"emoji":"🧩","name":"Puzzle Solver","tag":"Making grammar pieces fit","cost":140},{"emoji":"🗣️","name":"Chatterbox","tag":"Talking more, hesitating less","cost":180},{"emoji":"📖","name":"Story Weaver","tag":"Stringing sentences into stories","cost":230},{"emoji":"🎯","name":"Sharp Shooter","tag":"Hitting grammar targets with precision","cost":280},{"emoji":"🌉","name":"Bridge Builder","tag":"Connecting ideas smoothly","cost":340},{"emoji":"🎭","name":"Storyteller Supreme","tag":"Speaking with real personality","cost":400},{"emoji":"🦉","name":"Wise Owl","tag":"Reading between the lines","cost":470},{"emoji":"🏹","name":"Idiom Hunter","tag":"Chasing down tricky expressions","cost":540},{"emoji":"🎙️","name":"Confident Voice","tag":"Speaking up without fear","cost":620},{"emoji":"🌊","name":"Fluency Flow","tag":"Words start flowing naturally","cost":700},{"emoji":"🧠","name":"Deep Thinker","tag":"Expressing complex ideas with ease","cost":790},{"emoji":"🔥","name":"Rising Star","tag":"Impossible to ignore now","cost":880},{"emoji":"🌐","name":"Global Communicator","tag":"Ready to talk to anyone, anywhere","cost":980},{"emoji":"👑","name":"Word Royalty","tag":"Commanding the language with style","cost":1090},{"emoji":"🚀","name":"Language Rocket","tag":"Almost at native-level altitude","cost":1210},{"emoji":"🏆","name":"English Legend","tag":"The honor of true mastery","cost":1350}];
+const POS_LABEL = {v:"Verb", n:"Noun", adj:"Adjective", adv:"Adverb"};
+
+const ACHIEVEMENTS = [
+  {id:"first_step", em:"\ud83e\udd47", name:"First Step", desc:"Log the first result", check:(g,recs)=>recs.length>=1},
+  {id:"streak3", em:"\ud83d\udd25", name:"On Fire", desc:"3-day quiz streak", check:(g)=>g.quiz.bestStreak>=3},
+  {id:"streak7", em:"\ud83c\udf1f", name:"Week Warrior", desc:"7-day quiz streak", check:(g)=>g.quiz.bestStreak>=7},
+  {id:"streak30", em:"\ud83d\udc51", name:"Unstoppable", desc:"30-day quiz streak", check:(g)=>g.quiz.bestStreak>=30},
+  {id:"stars100", em:"\u2b50", name:"Star Collector", desc:"Earn 100 stars total", check:(g)=>g.totalStarsEarned>=100},
+  {id:"stars500", em:"\ud83d\udcab", name:"Star Hoarder", desc:"Earn 500 stars total", check:(g)=>g.totalStarsEarned>=500},
+  {id:"halfway", em:"\ud83e\uddd7", name:"Halfway Hero", desc:"Reach level 10", check:(g)=>g.level>=10},
+  {id:"legend", em:"\ud83c\udfc6", name:"English Legend", desc:"Reach the final level", check:(g)=>g.level>=20},
+  {id:"perfectquiz", em:"\ud83d\udcaf", name:"Perfect Quiz", desc:"Score 5/5 on a daily quiz", check:(g)=>!!g.everPerfectQuiz},
+  {id:"quizwhiz", em:"\ud83e\udde0", name:"Quiz Whiz", desc:"Answer 50 questions correctly", check:(g)=>g.quiz.totalCorrect>=50},
+  {id:"bigscore", em:"\ud83d\udcc8", name:"High Achiever", desc:"Reach 90+ points", check:(g,recs)=>{const s=[...recs].sort((a,b)=>a.date.localeCompare(b.date));return s.length && s[s.length-1].points>=90;}},
+];
+
+const KEY="english_progression_v3";
+const GKEY="english_progression_game_v1";
+let data=loadData();
+recalculate();
+let game=loadGame();
+let period="daily";
+let editingId=null;
+let quizState=null;
+
+function loadData(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(!raw)return [];
+    const parsed=JSON.parse(raw);
+    if(!Array.isArray(parsed))return [];
+    return parsed.filter(validRecord).map(x=>({
+      id:String(x.id),date:x.date,
+      change:Number.isFinite(Number(x.change))?Number(x.change):0,
+      points:Number(x.points),
+      notes:String(x.notes||"")
+    }));
+  }catch(e){return []}
+}
+function validRecord(x){
+  return x && typeof x.id==="string" && /^\d{4}-\d{2}-\d{2}$/.test(x.date)
+    && ((Number.isFinite(Number(x.points)) && Number(x.points)>=0 && Number(x.points)<=100)
+      || Number.isFinite(Number(x.change)));
+}
+function saveData(){localStorage.setItem(KEY,JSON.stringify(data));}
+
+function defaultGame(){
+  return {stars:0, totalStarsEarned:0, level:1, everPerfectQuiz:false,
+    quiz:{lastDate:null, streak:0, bestStreak:0, totalCorrect:0, totalAsked:0},
+    achievements:[]};
+}
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(GKEY);
+    if(!raw)return defaultGame();
+    const p=JSON.parse(raw);
+    const d=defaultGame();
+    if(!p||typeof p!=="object")return d;
+    return {
+      stars:Number.isFinite(Number(p.stars))?Math.max(0,Math.floor(Number(p.stars))):0,
+      totalStarsEarned:Number.isFinite(Number(p.totalStarsEarned))?Math.floor(Number(p.totalStarsEarned)):0,
+      level:Number.isInteger(p.level)&&p.level>=1&&p.level<=20?p.level:1,
+      everPerfectQuiz:!!p.everPerfectQuiz,
+      quiz:{
+        lastDate:(p.quiz&&/^\d{4}-\d{2}-\d{2}$/.test(p.quiz.lastDate))?p.quiz.lastDate:null,
+        streak:(p.quiz&&Number.isFinite(Number(p.quiz.streak)))?Math.max(0,Math.floor(Number(p.quiz.streak))):0,
+        bestStreak:(p.quiz&&Number.isFinite(Number(p.quiz.bestStreak)))?Math.max(0,Math.floor(Number(p.quiz.bestStreak))):0,
+        totalCorrect:(p.quiz&&Number.isFinite(Number(p.quiz.totalCorrect)))?Math.max(0,Math.floor(Number(p.quiz.totalCorrect))):0,
+        totalAsked:(p.quiz&&Number.isFinite(Number(p.quiz.totalAsked)))?Math.max(0,Math.floor(Number(p.quiz.totalAsked))):0
+      },
+      achievements:Array.isArray(p.achievements)?p.achievements.filter(x=>typeof x==="string"):[]
+    };
+  }catch(e){return defaultGame();}
+}
+function saveGame(){localStorage.setItem(GKEY,JSON.stringify(game));}
+
+function esc(s){return String(s??"").replace(/[&<>"\x27]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","\x27":"&#39;"}[m]));}
+function status(p){
+  p=Number(p);
+  if(p>=100)return ["Very great","green"];
+  if(p>=90)return ["Great","green"];
+  if(p>=75)return ["Good","green"];
+  if(p>=50)return ["Normal","muted"];
+  return ["Needs improvement","red"];
+}
+function fmtDate(s){
+  const d=new Date(s+"T00:00:00");
+  return d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+}
+function today(){
+  const d=new Date();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return d.getFullYear()+"-"+m+"-"+day;
+}
+function daysBetween(a,b){
+  return Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/86400000);
+}
+function sorted(){return [...data].sort((a,b)=>a.date.localeCompare(b.date));}
+function latestByPeriod(){
+  const groups={};
+  sorted().forEach(r=>{
+    const d=new Date(r.date+"T00:00:00");
+    let key;
+    if(period==="daily") key=r.date;
+    if(period==="weekly"){
+      const day=(d.getDay()+6)%7;
+      const monday=new Date(d); monday.setDate(d.getDate()-day);
+      key=monday.toISOString().slice(0,10);
+    }
+    if(period==="monthly") key=r.date.slice(0,7);
+    if(period==="yearly") key=r.date.slice(0,4);
+    groups[key]=r;
+  });
+  return Object.values(groups).sort((a,b)=>a.date.localeCompare(b.date));
+}
+function updateCards(){
+  const s=sorted();
+  const current=s.length?s[s.length-1].points:100;
+  const best=s.length?Math.max(...s.map(x=>Number(x.points))):100;
+  let growth=0;
+  if(s.length>=2){
+    const prev=Number(s[s.length-2].points);
+    growth=prev===0 ? (current>0?100:0) : ((current-prev)/Math.abs(prev))*100;
+  }
+  document.getElementById("currentPoints").textContent=current;
+  const st=status(current);
+  const el=document.getElementById("currentStatus");el.textContent=st[0];el.className="status "+st[1];
+  document.getElementById("growth").textContent=(growth>=0?"+":"")+growth.toFixed(1)+"%";
+  document.getElementById("growth").className="big "+(growth>=0?"green":"red");
+  document.getElementById("best").textContent=best;
+  document.getElementById("records").textContent=s.length;
+}
+function renderEntries(){
+  const box=document.getElementById("entries");
+  const s=sorted().reverse();
+  if(!s.length){box.innerHTML='<div class="empty">No results yet. Click \u201c+ Add result\u201d to create the first record.</div>';return;}
+  box.innerHTML=s.map(r=>{
+    const st=status(r.points);
+    const starNote = r.change>0 ? ' \u00b7 <span class="gold">+'+esc(r.change)+' \u2b50</span>' : "";
+    return `<div class="entry">
+      <div><strong>${esc(fmtDate(r.date))}</strong><br><small>${r.change>0?"+":""}${esc(r.change)} pts \u00b7 ${esc(r.points)}/100 \u00b7 <span class="${st[1]}">${esc(st[0])}</span>${starNote}</small></div>
+      <div><small>${esc(r.notes||"No note")}</small></div>
+      <div class="actions"><button class="secondary edit" data-id="${esc(r.id)}">Edit</button><button class="danger delete" data-id="${esc(r.id)}">Delete</button></div>
+    </div>`;
+  }).join("");
+  box.querySelectorAll(".edit").forEach(b=>b.onclick=()=>openModal(b.dataset.id));
+  box.querySelectorAll(".delete").forEach(b=>b.onclick=()=>deleteRecord(b.dataset.id));
+}
+function resizeCanvas(){
+  const c=document.getElementById("chart"), rect=c.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  c.width=Math.max(1,Math.floor(rect.width*dpr));c.height=Math.max(1,Math.floor(rect.height*dpr));
+  drawChart();
+}
+function drawChart(){
+  const c=document.getElementById("chart"),ctx=c.getContext("2d"),dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const arr=latestByPeriod();
+  const pad={l:48,r:18,t:24,b:45}, w=W-pad.l-pad.r,h=H-pad.t-pad.b;
+  ctx.font="12px Segoe UI,Arial";ctx.lineWidth=1;
+  ctx.strokeStyle="#263452";ctx.fillStyle="#9aa8c7";
+  for(let v=0;v<=100;v+=25){
+    const y=pad.t+h-(v/100)*h;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.fillText(String(v),12,y+4);
+  }
+  if(!arr.length){
+    ctx.fillStyle="#9aa8c7";ctx.textAlign="center";ctx.fillText("Add your first result to see the graph.",W/2,H/2);ctx.textAlign="left";return;
+  }
+  const x=i=>arr.length===1?pad.l+w/2:pad.l+(i/(arr.length-1))*w;
+  const y=p=>pad.t+h-(Number(p)/100)*h;
+  ctx.strokeStyle="#7c9cff";ctx.lineWidth=3;ctx.beginPath();
+  arr.forEach((r,i)=>{if(i===0)ctx.moveTo(x(i),y(r.points));else ctx.lineTo(x(i),y(r.points));});ctx.stroke();
+  arr.forEach((r,i)=>{
+    ctx.fillStyle="#7c9cff";ctx.beginPath();ctx.arc(x(i),y(r.points),6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#eef3ff";ctx.font="11px Segoe UI,Arial";ctx.textAlign="center";ctx.fillText(String(r.points),x(i),y(r.points)-11);
+  });
+  ctx.fillStyle="#9aa8c7";ctx.font="11px Segoe UI,Arial";
+  const maxLabels=Math.min(arr.length,7);
+  arr.forEach((r,i)=>{
+    if(i%(Math.ceil(arr.length/maxLabels))===0 || i===arr.length-1){
+      const label=period==="daily"?r.date.slice(5):period==="yearly"?r.date.slice(0,4):r.date.slice(0,10).replace(/-/g,"/");
+      ctx.fillText(label,x(i),H-16);
+    }
+  });
+  ctx.textAlign="left";
+  c._points=arr.map((r,i)=>({r,x:x(i),y:y(r.points)}));
+}
+function findPoint(evt){
+  const c=document.getElementById("chart"),rect=c.getBoundingClientRect();
+  const sx=c.width/rect.width,sy=c.height/rect.height;
+  const px=(evt.clientX-rect.left)*sx/(window.devicePixelRatio||1);
+  const py=(evt.clientY-rect.top)*sy/(window.devicePixelRatio||1);
+  const pts=c._points||[];let best=null,dist=Infinity;
+  pts.forEach(p=>{const dd=Math.hypot(px-p.x,py-p.y);if(dd<dist){dist=dd;best=p;}});
+  return dist<=22?best:null;
+}
+function recalculate(){
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  let total=100;
+  data.forEach(r=>{
+    const delta=Number(r.change||0);
+    total=Math.max(0,Math.min(100,total+delta));
+    r.points=total;
+  });
+}
+function openModal(id=null){
+  editingId=id;
+  const modal=document.getElementById("modal");
+  document.getElementById("modalTitle").textContent=id?"Edit point change":"Add point change";
+  if(id){
+    const r=data.find(x=>x.id===id);if(!r)return;
+    dateInput.value=r.date;
+    changeInput.value=Number(r.change||0);
+    noteInput.value=r.notes||"";
+  }else{
+    dateInput.value=today();
+    changeInput.value="";
+    noteInput.value="";
+  }
+  modal.classList.add("show");
+  setTimeout(()=>changeInput.focus(),30);
+}
+function closeModal(){document.getElementById("modal").classList.remove("show");editingId=null;}
+function saveRecord(){
+  const date=dateInput.value,change=Number(changeInput.value),notes=noteInput.value.trim();
+  if(!date||!Number.isFinite(change)||!Number.isInteger(change)){alert("Please enter a whole-number point change, for example +5 or -10.");return;}
+  if(change>100||change<-100){alert("Point change must be between -100 and +100.");return;}
+  let prevChange=0;
+  if(editingId){
+    const r=data.find(x=>x.id===editingId);
+    if(r){prevChange=r.change;r.date=date;r.change=change;r.notes=notes;}
+  }else{
+    const same=data.find(x=>x.date===date);
+    if(same){prevChange=same.change;same.change=change;same.notes=notes;}
+    else data.push({id:date+"_"+Date.now(),date,change,points:0,notes});
+  }
+  recalculate();
+  saveData();
+  const gained=Math.max(0,change)-Math.max(0,prevChange);
+  if(gained>0){
+    game.stars+=gained;
+    game.totalStarsEarned+=gained;
+    checkAchievements();
+    saveGame();
+  }
+  closeModal();refresh();
+}
+function deleteRecord(id){
+  const r=data.find(x=>x.id===id);if(!r)return;
+  if(confirm("Delete the result for "+fmtDate(r.date)+"?")){data=data.filter(x=>x.id!==id);saveData();refresh();}
+}
+function refresh(){recalculate();saveData();updateCards();renderEntries();drawChart();checkAchievements();renderGame();}
+
+/* ================= Rank / Level path ================= */
+function renderGame(){
+  const cur=game.level;
+  const curL=LEVELS[cur-1];
+  document.getElementById("rankEmoji").textContent=curL.emoji;
+  document.getElementById("rankName").textContent=curL.name;
+  document.getElementById("rankTag").textContent=curL.tag;
+  document.getElementById("starBalance").textContent=game.stars+" \u2b50";
+  const fill=document.getElementById("progFill");
+  const label=document.getElementById("progLabel");
+  const btn=document.getElementById("unlockBtn");
+  if(cur<20){
+    const nextL=LEVELS[cur];
+    const pct=Math.min(100,Math.round((game.stars/nextL.cost)*100));
+    fill.style.width=pct+"%";
+    label.textContent=game.stars+"/"+nextL.cost+" \u2b50 to unlock "+nextL.emoji+" "+nextL.name;
+    btn.disabled=game.stars<nextL.cost;
+    btn.textContent="Unlock "+nextL.name+" ("+nextL.cost+"\u2b50)";
+  }else{
+    fill.style.width="100%";
+    label.textContent="Max level reached \u2014 English Legend!";
+    btn.disabled=true;
+    btn.textContent="Max level reached";
+  }
+  const path=document.getElementById("path");
+  path.innerHTML=LEVELS.map((l,i)=>{
+    const num=i+1;
+    const cls=num<cur?"node unlocked":num===cur?"node unlocked current":"node";
+    return `<div class="${cls}"><div class="em">${l.emoji}</div><div class="nm">${esc(l.name)}</div><div class="lv">Lv ${num}</div><div class="cost">${num<=cur?"Unlocked":l.cost+"\u2b50"}</div></div>`;
+  }).join("");
+  renderBadges();
+}
+function unlockNextLevel(){
+  if(game.level>=20)return;
+  const nextL=LEVELS[game.level];
+  if(game.stars<nextL.cost)return;
+  game.stars-=nextL.cost;
+  game.level+=1;
+  checkAchievements();
+  saveGame();
+  renderGame();
+  showLevelUp(nextL);
+}
+function showLevelUp(l){
+  document.getElementById("luEmoji").textContent=l.emoji;
+  document.getElementById("luName").textContent=l.emoji+" "+l.name;
+  document.getElementById("luTag").textContent=l.tag;
+  document.getElementById("levelUpModal").classList.add("show");
+  spawnConfetti();
+}
+function spawnConfetti(){
+  const wrap=document.getElementById("confettiWrap");
+  const colors=["#7c9cff","#ffcf6b","#46d39a","#ff6b7a","#ffffff"];
+  for(let i=0;i<44;i++){
+    const el=document.createElement("div");
+    const size=6+Math.random()*7;
+    const left=Math.random()*100;
+    const dur=1.6+Math.random()*1.4;
+    const delay=Math.random()*0.4;
+    el.style.position="absolute";
+    el.style.top="-20px";
+    el.style.left=left+"vw";
+    el.style.width=size+"px";
+    el.style.height=size*(Math.random()>0.5?1:2.2)+"px";
+    el.style.background=colors[i%colors.length];
+    el.style.opacity="0.95";
+    el.style.borderRadius=Math.random()>0.5?"50%":"2px";
+    el.style.transform="rotate("+Math.floor(Math.random()*360)+"deg)";
+    el.style.transition="top "+dur+"s linear "+delay+"s, opacity 0.4s linear "+(dur+delay-0.4)+"s";
+    wrap.appendChild(el);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      el.style.top="108vh";
+      el.style.opacity="0";
+    }));
+    setTimeout(()=>el.remove(),(dur+delay+0.5)*1000);
+  }
+}
+
+/* ================= Achievements ================= */
+function checkAchievements(){
+  let changed=false;
+  ACHIEVEMENTS.forEach(a=>{
+    if(game.achievements.indexOf(a.id)===-1 && a.check(game,data)){
+      game.achievements.push(a.id);
+      changed=true;
+    }
+  });
+  if(changed)saveGame();
+  return changed;
+}
+function renderBadges(){
+  const box=document.getElementById("badges");
+  box.innerHTML=ACHIEVEMENTS.map(a=>{
+    const on=game.achievements.indexOf(a.id)!==-1;
+    return `<div class="abadge${on?" on":""}"><div class="aem">${a.em}</div><div class="an">${esc(a.name)}</div><div class="ad">${esc(a.desc)}</div></div>`;
+  }).join("");
+}
+
+/* ================= Bonus stars ================= */
+function openStarsModal(){
+  document.getElementById("starsInput").value="";
+  document.getElementById("starsReason").value="";
+  document.getElementById("starsModal").classList.add("show");
+  setTimeout(()=>document.getElementById("starsInput").focus(),30);
+}
+function closeStarsModal(){document.getElementById("starsModal").classList.remove("show");}
+function saveStars(){
+  const amt=Math.floor(Number(document.getElementById("starsInput").value));
+  if(!Number.isFinite(amt)||amt<1||amt>1000){alert("Enter a whole number of stars between 1 and 1000.");return;}
+  game.stars+=amt;
+  game.totalStarsEarned+=amt;
+  checkAchievements();
+  saveGame();
+  renderGame();
+  closeStarsModal();
+}
+
+/* ================= Daily word quiz ================= */
+function tierForLevel(lvl){return lvl<=7?1:lvl<=14?2:3;}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function buildQuiz(){
+  const tier=tierForLevel(game.level);
+  const pool=VOCAB.filter(w=>w.l<=tier);
+  const picks=shuffle(pool).slice(0,5);
+  return picks.map(w=>{
+    let distractPool=VOCAB.filter(x=>x.w!==w.w && x.d!==w.d);
+    const distract=shuffle(distractPool).slice(0,3).map(x=>x.d);
+    const options=shuffle([w.d,...distract]);
+    return {word:w.w, pos:w.p, correct:w.d, options};
+  });
+}
+function updateQuizButton(){
+  const btn=document.getElementById("quizBtn");
+  const doneToday=game.quiz.lastDate===today();
+  btn.textContent=doneToday?"\ud83d\udd01 Practice again (no reward)":"\u25b6 Start today's quiz";
+  const dispStreak=(!game.quiz.lastDate||daysBetween(game.quiz.lastDate,today())>1)?0:game.quiz.streak;
+  document.getElementById("streakNow").textContent=dispStreak+"\ud83d\udd25";
+  document.getElementById("streakBest").textContent=game.quiz.bestStreak;
+  const acc=game.quiz.totalAsked?Math.round(game.quiz.totalCorrect/game.quiz.totalAsked*100):0;
+  document.getElementById("quizAccuracy").textContent=acc+"%";
+  document.getElementById("wordsSeen").textContent=game.quiz.totalAsked;
+}
+function startQuiz(){
+  const practice=game.quiz.lastDate===today();
+  quizState={questions:buildQuiz(),idx:0,correct:0,practice};
+  document.getElementById("quizModal").classList.add("show");
+  renderQuizQuestion();
+}
+function closeQuizModal(){document.getElementById("quizModal").classList.remove("show");quizState=null;}
+function renderQuizQuestion(){
+  const area=document.getElementById("quizArea");
+  const q=quizState.questions[quizState.idx];
+  const n=quizState.idx+1;
+  area.innerHTML=`
+    <div class="qprogress">Question ${n} of ${quizState.questions.length}${quizState.practice?" \u00b7 Practice mode":""}</div>
+    <div class="qword">${esc(q.word)}</div>
+    <div class="qpos">${esc(POS_LABEL[q.pos]||q.pos)} \u00b7 what does this word mean?</div>
+    <div class="qopts" id="qopts">${q.options.map((o,i)=>`<button class="qopt" data-i="${i}">${esc(o)}</button>`).join("")}</div>
+  `;
+  area.querySelectorAll(".qopt").forEach(b=>b.onclick=()=>answerQuiz(Number(b.dataset.i)));
+}
+function answerQuiz(i){
+  const q=quizState.questions[quizState.idx];
+  const chosen=q.options[i];
+  const correct=chosen===q.correct;
+  if(correct)quizState.correct++;
+  document.querySelectorAll("#qopts .qopt").forEach((b,idx)=>{
+    b.disabled=true;
+    if(q.options[idx]===q.correct)b.classList.add("correct");
+    else if(idx===i)b.classList.add("wrong");
+  });
+  setTimeout(()=>{
+    quizState.idx++;
+    if(quizState.idx<quizState.questions.length)renderQuizQuestion();
+    else finishQuiz();
+  },850);
+}
+function finishQuiz(){
+  const area=document.getElementById("quizArea");
+  const correct=quizState.correct, total=quizState.questions.length, practice=quizState.practice;
+  let starsEarned=0;
+  if(!practice){
+    starsEarned=correct*5+(correct===total?10:0);
+    game.stars+=starsEarned;
+    game.totalStarsEarned+=starsEarned;
+    game.quiz.totalCorrect+=correct;
+    game.quiz.totalAsked+=total;
+    if(correct===total)game.everPerfectQuiz=true;
+    const last=game.quiz.lastDate;
+    if(!last)game.quiz.streak=1;
+    else{
+      const diff=daysBetween(last,today());
+      if(diff===1)game.quiz.streak+=1;
+      else if(diff>1)game.quiz.streak=1;
+      /* diff===0 shouldn't happen since gated, but guard anyway */
+    }
+    game.quiz.lastDate=today();
+    game.quiz.bestStreak=Math.max(game.quiz.bestStreak,game.quiz.streak);
+    checkAchievements();
+    saveGame();
+    renderGame();
+  }
+  area.innerHTML=`
+    <div class="qresult">
+      <div class="sub">${practice?"Practice round complete":"Today's quiz complete"}</div>
+      <div class="score">${correct}/${total}</div>
+      ${practice?`<div class="sub">Practice rounds don\u2019t earn stars or count toward the streak.</div>`:`<div class="sub gold" style="font-weight:800">+${starsEarned} \u2b50 earned${correct===total?" \u00b7 Perfect score bonus!":""}</div>`}
+      <div class="modal-actions" style="justify-content:center;margin-top:16px">
+        <button class="primary" id="quizCloseBtn">Done</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("quizCloseBtn").onclick=()=>{closeQuizModal();updateQuizButton();};
+}
+
+/* ================= Export / import / report / reset ================= */
+function exportData(){
+  const blob=new Blob([JSON.stringify({version:4,data,game},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="english-progression-data.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importData(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const obj=JSON.parse(reader.result),incoming=Array.isArray(obj)?obj:obj.data;
+      if(!Array.isArray(incoming)||!incoming.every(validRecord))throw new Error();
+      data=incoming.map(r=>({id:String(r.id),date:r.date,change:Number.isFinite(Number(r.change))?Number(r.change):0,points:Math.round(Number(r.points)),notes:String(r.notes||"")}));recalculate();
+      data.sort((a,b)=>a.date.localeCompare(b.date));saveData();
+      if(obj&&typeof obj==="object"&&obj.game){
+        const merged=defaultGame();
+        try{
+          localStorage.setItem(GKEY,JSON.stringify(obj.game));
+          game=loadGame();
+        }catch(e){game=merged;}
+      }
+      refresh();alert("Data imported successfully.");
+    }catch(e){alert("That file is not a valid English Progression data file.");}
+  };reader.readAsText(file);
+}
+function downloadStudent(){
+  const s=sorted(),current=s.length?s[s.length-1].points:100,best=s.length?Math.max(...s.map(x=>x.points)):100;
+  const st=status(current);
+  const curL=LEVELS[game.level-1];
+  const acc=game.quiz.totalAsked?Math.round(game.quiz.totalCorrect/game.quiz.totalAsked*100):0;
+  const rows=s.map(r=>`<tr><td>${esc(fmtDate(r.date))}</td><td class="${r.change>=0?"green":"red"}"><b>${r.change>0?"+":""}${r.change}</b></td><td><b>${r.points}/100</b></td><td>${esc(status(r.points)[0])}</td></tr>`).join("");
+  const notes=s.filter(r=>r.notes).map(r=>`<div class="note"><b>${esc(fmtDate(r.date))}</b><p>${esc(r.notes)}</p></div>`).join("");
+  const vals=JSON.stringify(s.map(r=>({date:r.date,points:r.points,change:r.change})));
+  const badgeRows=ACHIEVEMENTS.filter(a=>game.achievements.indexOf(a.id)!==-1).map(a=>`<div class="note"><b>${a.em} ${esc(a.name)}</b><p>${esc(a.desc)}</p></div>`).join("")||"<p class=\'muted\'>No achievements unlocked yet.</p>";
+  const report=`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>English Progression \u2014 Student Report</title>
+<style>
+body{margin:0;background:#0b1020;color:#eef3ff;font-family:Inter,Segoe UI,Arial,sans-serif}.wrap{max-width:900px;margin:auto;padding:35px 18px}.card{background:#121a2d;border:1px solid #263452;border-radius:18px;padding:20px;margin-bottom:16px}h1{margin:0 0 5px}.muted{color:#9aa8c7}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.big{font-size:28px;font-weight:800;margin-top:6px}.green{color:#46d39a}.red{color:#ff6b7a}.gold{color:#ffcf6b}canvas{width:100%;height:350px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px;border-bottom:1px solid #263452}.note{padding:12px 0;border-bottom:1px solid #263452}.note p{color:#cbd5ee;white-space:pre-wrap}.rankrow{display:flex;align-items:center;gap:14px}.rankem{font-size:40px}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style></head><body><div class="wrap"><div class="card"><h1>English Progression</h1><div class="muted">Student Progress Report \u00b7 Read Only \u00b7 Points start at 100</div></div>
+<div class="grid"><div class="card"><div class="muted">Current points</div><div class="big">${current}/100</div><div class="${st[1]}">${esc(st[0])}</div></div><div class="card"><div class="muted">Best</div><div class="big">${best}/100</div></div><div class="card"><div class="muted">Records</div><div class="big">${s.length}</div></div></div>
+<div class="card"><div class="rankrow"><div class="rankem">${curL.emoji}</div><div><div class="big" style="margin-top:0">${esc(curL.name)} \u00b7 Level ${game.level}/20</div><div class="muted">${esc(curL.tag)}</div><div class="gold" style="font-weight:800;margin-top:6px">${game.stars} \u2b50 in wallet \u00b7 ${game.totalStarsEarned} \u2b50 earned lifetime</div></div></div></div>
+<div class="grid"><div class="card"><div class="muted">Quiz streak</div><div class="big">${game.quiz.streak}\ud83d\udd25</div><div class="muted">Best: ${game.quiz.bestStreak}</div></div><div class="card"><div class="muted">Quiz accuracy</div><div class="big">${acc}%</div></div><div class="card"><div class="muted">Questions answered</div><div class="big">${game.quiz.totalAsked}</div></div></div>
+<div class="card"><h2>Progress graph</h2><canvas id="c"></canvas></div>
+<div class="card"><h2>Results</h2>${rows?`<table><thead><tr><th>Date</th><th>Change</th><th>Total</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`:"<p class=\'muted\'>No results yet.</p>"}</div>
+${notes?`<div class="card"><h2>Teacher notes</h2>${notes}</div>`:""}
+<div class="card"><h2>Achievements unlocked</h2>${badgeRows}</div>
+</div>
+<script>
+const data=${vals};const c=document.getElementById("c"),ctx=c.getContext("2d");
+function draw(){const dpr=devicePixelRatio||1,rect=c.getBoundingClientRect();c.width=rect.width*dpr;c.height=350*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);const W=rect.width,H=350,p={l:42,r:15,t:20,b:35},w=W-p.l-p.r,h=H-p.t-p.b;ctx.strokeStyle="#263452";ctx.fillStyle="#9aa8c7";ctx.font="12px Arial";for(let v=0;v<=100;v+=25){let y=p.t+h-v/100*h;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();ctx.fillText(v,8,y+4)}if(!data.length)return;const X=i=>data.length===1?p.l+w/2:p.l+i/(data.length-1)*w,Y=v=>p.t+h-v/100*h;ctx.strokeStyle="#7c9cff";ctx.lineWidth=3;ctx.beginPath();data.forEach((r,i)=>i?ctx.lineTo(X(i),Y(r.points)):ctx.moveTo(X(i),Y(r.points)));ctx.stroke();data.forEach((r,i)=>{ctx.fillStyle="#7c9cff";ctx.beginPath();ctx.arc(X(i),Y(r.points),6,0,7);ctx.fill()})}draw();addEventListener("resize",draw);
+<\/script></body></html>`;
+  const blob=new Blob([report],{type:"text/html"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="English-Progression-Student-Report.html";a.click();URL.revokeObjectURL(a.href);
+}
+document.getElementById("addBtn").onclick=()=>openModal();
+document.getElementById("cancelBtn").onclick=closeModal;
+document.getElementById("saveBtn").onclick=saveRecord;
+document.getElementById("downloadBtn").onclick=downloadStudent;
+document.getElementById("exportBtn").onclick=exportData;
+document.getElementById("importFile").onchange=e=>{if(e.target.files[0])importData(e.target.files[0]);e.target.value=""};
+document.getElementById("resetBtn").onclick=()=>{if(confirm("Delete all progression, level, star and quiz data on this device?")){data=[];game=defaultGame();saveData();saveGame();refresh();updateQuizButton();}};
+document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal()};
+document.getElementById("chart").addEventListener("click",e=>{const p=findPoint(e);if(p)openModal(p.r.id)});
+document.getElementById("tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  period=b.dataset.period;document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("active",x===b));drawChart();
+});
+document.getElementById("awardStarsBtn").onclick=openStarsModal;
+document.getElementById("starsCancelBtn").onclick=closeStarsModal;
+document.getElementById("starsSaveBtn").onclick=saveStars;
+document.getElementById("starsModal").onclick=e=>{if(e.target.id==="starsModal")closeStarsModal()};
+document.getElementById("unlockBtn").onclick=unlockNextLevel;
+document.getElementById("luCloseBtn").onclick=()=>document.getElementById("levelUpModal").classList.remove("show");
+document.getElementById("levelUpModal").onclick=e=>{if(e.target.id==="levelUpModal")document.getElementById("levelUpModal").classList.remove("show")};
+document.getElementById("quizBtn").onclick=startQuiz;
+document.getElementById("quizModal").onclick=e=>{if(e.target.id==="quizModal")closeQuizModal()};
+window.addEventListener("resize",resizeCanvas);
+refresh();updateQuizButton();setTimeout(resizeCanvas,50);
+})();
+</script>
+</body>
+</html>
