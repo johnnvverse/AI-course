@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TENSE MASTER — Ingliz tili zamonlarini o'zlashtirish</title>
+<style>
+:root{
+  --bg:#0b1220;--panel:#121c2d;--panel2:#17243a;--text:#edf4ff;--muted:#9eb0c9;
+  --accent:#55d6be;--purple:#a78bfa;--orange:#f6ad55;--red:#fb7185;--yellow:#facc15;
+  --line:#263752;--good:#34d399;--bad:#fb7185;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#09111e,#0d1626 55%,#09111e);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.55}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.container{max-width:1180px;margin:auto;padding:24px}
+header{padding:28px 0 18px}
+h1{font-size:clamp(30px,5vw,56px);margin:0 0 8px;letter-spacing:-1.5px}
+h2{margin-top:0}.subtitle{color:var(--muted);max-width:780px}
+.badge{display:inline-block;padding:5px 10px;border-radius:999px;background:#173c46;color:#76f0da;font-weight:700;font-size:12px}
+.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,1fr)}
+.card{background:rgba(18,28,45,.94);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.stat strong{display:block;font-size:28px}.muted{color:var(--muted)}
+.progress{height:10px;background:#243248;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#8be9ff);width:0}
+.nav{position:sticky;top:0;z-index:5;background:rgba(9,17,30,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.navin{max-width:1180px;margin:auto;padding:10px 24px;display:flex;gap:8px;overflow:auto}
+.nav button,.btn{border:1px solid var(--line);background:#142137;color:var(--text);padding:9px 13px;border-radius:10px}
+.nav button:hover,.btn:hover{border-color:#4b668c;transform:translateY(-1px)}
+.primary{background:#1a625b;border-color:#2a9d8f}.danger{background:#4b1d2a}.small{font-size:13px}
+.section{margin:34px 0}.hidden{display:none}
+.two{grid-template-columns:1.2fr .8fr}.three{grid-template-columns:repeat(3,1fr)}
+.lesson{border-left:4px solid var(--accent)}.formula{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#0a1322;padding:12px;border-radius:10px;color:#b7f5ea}
+.example{padding:12px 14px;border-left:3px solid var(--purple);background:#121d31;border-radius:8px;margin:8px 0}
+.tip{background:#182b2b;border:1px solid #28544e;padding:12px;border-radius:12px}
+.warning{background:#30251a;border:1px solid #5a4524;padding:12px;border-radius:12px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#b9c8dd}
+.tenses{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.tenseCard{padding:16px;border:1px solid var(--line);border-radius:14px;background:#111b2b}
+.tenseCard h3{margin:0 0 4px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;background:var(--accent)}
+.flash{min-height:230px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:23px;padding:25px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#17243a,#101a2b)}
+.flash small{display:block;color:var(--muted);font-size:14px;margin-top:12px}
+.gamebox{min-height:220px}.choiceRow{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.choice{background:#15233a;border:1px solid #334966;color:var(--text);padding:10px 13px;border-radius:10px}.choice.correct{background:#123e35;border-color:var(--good)}.choice.wrong{background:#4a1d2b;border-color:var(--bad)}
+.feedback{margin-top:14px;font-weight:700;min-height:25px}
+input[type=text]{width:100%;padding:12px;background:#0b1525;border:1px solid #344a69;color:var(--text);border-radius:10px;outline:none}
+input:focus{border-color:var(--accent)}
+.answer{color:#91f2d6}.bad{color:#ff9aac}
+.lessonNav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+.pill{display:inline-block;padding:4px 9px;background:#26344a;border-radius:999px;color:#c8d5e8;font-size:12px}
+.scoreBig{font-size:44px;font-weight:800}.barrow{display:grid;grid-template-columns:210px 1fr 50px;gap:10px;align-items:center;margin:8px 0}
+details{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:9px 0;background:#111b2b}summary{cursor:pointer;font-weight:700}
+footer{color:var(--muted);padding:35px 0;text-align:center}
+@media(max-width:800px){.stats,.two,.three,.tenses{grid-template-columns:1fr}.container{padding:16px}.barrow{grid-template-columns:130px 1fr 40px}.navin{padding:8px 16px}}
+</style>
+</head>
+<body>
+<div class="nav"><div class="navin">
+<button onclick="go('home')">🏠 Bosh sahifa</button>
+<button onclick="go('roadmap')">🗺️ Yo‘l xaritasi</button>
+<button onclick="go('lessons')">📚 Darslar</button>
+<button onclick="go('flashcards')">🃏 Flashcards</button>
+<button onclick="go('games')">🎮 O‘yinlar</button>
+<button onclick="go('practice')">✍️ Mashqlar</button>
+<button onclick="go('progress')">📈 Natija</button>
+</div></div>
+
+<div class="container">
+<header id="home">
+<span class="badge">TENSE MASTER • O‘ZBEKCHA</span>
+<h1>12 zamon. 1 ta missiya. 🎯</h1>
+<p class="subtitle">Do‘stingizga zamonlarni yodlatish emas, <b>to‘g‘ri vaziyatda avtomatik ishlatishni</b> o‘rgating. Siz esa o‘qituvchi bo‘lib, o‘zingiz ham mastery qilasiz.</p>
+<div class="grid stats">
+<div class="card stat"><span class="muted">Boshlang‘ich diagnostika</span><strong>7/24</strong><span>29%</span></div>
+<div class="card stat"><span class="muted">Mastery darslari</span><strong id="lessonDone">0/12</strong><span>zamonlar</span></div>
+<div class="card stat"><span class="muted">O‘yin ballari</span><strong id="gameScore">0</strong><span>XP</span></div>
+<div class="card stat"><span class="muted">Umumiy progress</span><strong id="overall">0%</strong><span>mastery</span></div>
+</div>
+</header>
+
+<section id="roadmap" class="section">
+<div class="card">
+<h2>🗺️ Bosqichma-bosqich yo‘l xaritasi</h2>
+<p class="muted">Diagnostikadagi natijaga qarab eng avval zaif joylarni tuzatamiz. Har dars 15–20 daqiqa.</p>
+<div class="grid three">
+<div><h3>LEVEL 1–3</h3><p>🟡 Past Simple<br>🟢 Present Perfect<br>🟢 Present Perfect Continuous</p></div>
+<div><h3>LEVEL 4–5</h3><p>🟣 Past Perfect<br>🟣 Past Perfect Continuous</p></div>
+<div><h3>LEVEL 6–9</h3><p>🟠 Future Simple<br>🟠 Future Continuous<br>🟠 Future Perfect<br>🟠 Future Perfect Continuous</p></div>
+</div>
+<div class="tip"><b>Asosiy qoida:</b> “Qaysi formula?”dan ko‘ra “Nega aynan shu zamon?”ni so‘rang. Formula + ma’no + vaziyat + gapirish = mastery.</div>
+</div>
+</section>
+
+<section id="lessons" class="section">
+<div class="card">
+<h2>📚 12 zamon — interaktiv darslar</h2>
+<div id="lessonList"></div>
+</div>
+</section>
+
+<section id="flashcards" class="section">
+<div class="card">
+<h2>🃏 Flashcards</h2>
+<p class="muted">Kartani bosing. Avval vaziyatni o‘zingiz ayting, keyin javobni tekshiring.</p>
+<div id="flash" class="flash" onclick="flipFlash()"></div>
+<div class="lessonNav"><button class="btn" onclick="prevFlash()">← Oldingi</button><button class="btn primary" onclick="nextFlash()">Keyingi →</button></div>
+</div>
+</section>
+
+<section id="games" class="section">
+<div class="grid two">
+<div class="card gamebox">
+<h2>🎮 O‘yin 1: Qaysi zamon?</h2>
+<p class="muted">Vaziyatni o‘qing va eng mos zamonni tanlang.</p>
+<div id="tenseGame"></div>
+</div>
+<div class="card gamebox">
+<h2>🕵️ O‘yin 2: Detective</h2>
+<p class="muted">“Nega?” savoliga vaziyatga mos gap tuzing.</p>
+<div id="detectiveGame"></div>
+</div>
+</div>
+<div class="card section">
+<h2>😂 O‘yin 3: Crazy Questions</h2>
+<p>Do‘stingizga quyidagi savollarni bering. Har javobda kerakli zamonni ishlatishi shart.</p>
+<div class="grid three">
+<div class="tenseCard">🕐 <b>Past</b><p>Kecha qilgan eng kulgili ishing nima?</p><p>Oxirgi marta qachon kech qolding?</p></div>
+<div class="tenseCard">🌍 <b>Experience</b><p>Hech qachon juda achchiq ovqat yeb ko‘rganmisan?</p><p>Hech qachon telefoningni yo‘qotganmisan?</p></div>
+<div class="tenseCard">🚀 <b>Future</b><p>2030-yilgacha nimaga erishgan bo‘lasan?</p><p>Ertaga soat 8 da nima qilayotgan bo‘lasan?</p></div>
+</div>
+</div>
+</section>
+
+<section id="practice" class="section">
+<div class="card">
+<h2>✍️ Mashqlar: Mixed Tenses</h2>
+<p class="muted">Zamonni o‘zing tanla. Bu — haqiqiy mastery bosqichi.</p>
+<div id="exerciseArea"></div>
+<button class="btn primary" onclick="checkExercises()">Javoblarni tekshirish</button>
+<button class="btn" onclick="newExercises()">Yangi mashqlar</button>
+<div id="exerciseResult" class="feedback"></div>
+</div>
+</section>
+
+<section id="progress" class="section">
+<div class="card">
+<h2>📈 Mastery paneli</h2>
+<p class="muted">Har bir darsni tugatganingizda “Mastery” tugmasini bosing. Natija brauzerda saqlanadi.</p>
+<div id="progressRows"></div>
+<br>
+<button class="btn danger" onclick="resetProgress()">Progressni reset qilish</button>
+</div>
+</section>
+
+<footer>TENSE MASTER • O‘rgan → tushuntir → o‘yna → gapir → aralashtir → master qil.</footer>
+</div>
+
+<script>
+const lessons=[
+{name:"Present Simple",color:"green",formula:"Subject + V1 (he/she/it → V-s)",core:"Odat, fakt, muntazam ish.",question:"Bu odatmi yoki umumiy faktmi?",examples:["I study English every day.","She plays chess on Sundays.","Water boils at 100°C."],game:"O‘zingizning kundalik hayotingizdan 3 ta odat ayting.",tip:"often, usually, every day, always kabi so‘zlar yordam beradi."},
+{name:"Present Continuous",formula:"am/is/are + V-ing",core:"Hozir sodir bo‘layotgan yoki vaqtinchalik jarayon.",question:"Hozir nima bo‘lyapti?",examples:["I am studying now.","He is playing Minecraft.","They are working this week."],game:"Telefoningizga qarang va hozir sodir bo‘layotgan 3 ta narsani inglizcha ayting.",tip:"now, right now, at the moment."},
+{name:"Present Perfect",formula:"have/has + V3",core:"O‘tgan voqea + hozirga bog‘liq natija yoki tajriba.",question:"Qachon emas, natija/tajriba muhimmi?",examples:["I have lost my keys. (Hozir kalit yo‘q.)","I have visited Tashkent.","Have you ever tried sushi?"],game:"‘Have you ever...?’ bilan 5 ta kulgili savol bering.",tip:"ever, never, already, just, yet, so far. Aniq tugagan vaqt bilan odatda Past Simple."},
+{name:"Present Perfect Continuous",formula:"have/has + been + V-ing",core:"O‘tmishda boshlangan va hozirgacha davom etgan/yaqinda davom etgan faoliyat; davomiylik muhim.",question:"Qancha vaqt davom etdi?",examples:["I have been studying for two hours.","She has been running.","How long have you been learning English?"],game:"‘Nega charchading?’ — ‘I have been ...’ bilan 3 ta kulgili sabab ayting.",tip:"for, since, all day, lately, recently, how long."},
+{name:"Past Simple",formula:"V2 / did + V1",core:"Tugagan o‘tgan voqea.",question:"Voqea tugaganmi va vaqt o‘tmishda aniqmi?",examples:["I watched a movie yesterday.","We visited Tashkent last year.","He went home two hours ago."],game:"‘Yesterday challenge’: kecha qilgan 5 ta ishingizni ayting.",tip:"yesterday, last week, ago, in 2024 kabi tugagan vaqtlar."},
+{name:"Past Continuous",formula:"was/were + V-ing",core:"O‘tmishdagi ma’lum bir paytda davom etayotgan jarayon.",question:"O‘sha paytda jarayon davom etayotganmidi?",examples:["I was studying at 8 PM.","She was sleeping when I called.","They were playing football."],game:"‘At 8 PM yesterday...’ bilan 3 ta gap tuzing.",tip:"while, when, at 8 PM yesterday."},
+{name:"Past Perfect",formula:"had + V3",core:"O‘tmishdagi boshqa voqeadan oldin tugagan voqea.",question:"Qaysi voqea birinchi bo‘lgan?",examples:["When I arrived, he had left.","The movie had started before we arrived.","She had finished her homework when I called."],game:"‘Who did it first?’ — ikki voqeani tartiblang va gap tuzing.",tip:"by the time, already, before, after. Formula har ikkala subject uchun ham HAD."},
+{name:"Past Perfect Continuous",formula:"had been + V-ing",core:"O‘tmishdagi boshqa voqeadan oldin bir muddat davom etgan faoliyat.",question:"O‘sha oldingi faoliyat qancha vaqt davom etgan?",examples:["I had been studying for three hours when he called.","She was tired because she had been running.","They had been waiting for an hour."],game:"‘Nega charchagan?’ detective o‘yini: sababni had been + V-ing bilan toping.",tip:"for/since + oldingi o‘tgan voqea; faoliyat/davomiylikka urg‘u."},
+{name:"Future Simple",formula:"will + V1",core:"Spontan qaror, va’da, taklif yoki taxmin.",question:"Qaror hozir qabul qilinyaptimi yoki bu taxmin/va’dami?",examples:["I will help you.","I think it will rain.","I will call you later."],game:"‘Predict my future’: do‘stingiz haqida 5 ta will taxmini qiling.",tip:"I think, probably, maybe, I promise; spontan qaror."},
+{name:"Future Continuous",formula:"will be + V-ing",core:"Kelajakdagi ma’lum bir vaqtda davom etayotgan jarayon.",question:"Kelajakdagi shu paytda jarayon davom etadimi?",examples:["At 8 PM, I will be studying.","This time tomorrow, we will be travelling.","Will you be using your laptop tonight?"],game:"‘Tomorrow at 8 PM...’ — 3 ta rejalashtirilgan jarayon.",tip:"at 8 tomorrow, this time tomorrow, at that time."},
+{name:"Future Perfect",formula:"will have + V3",core:"Kelajakdagi ma’lum vaqtgacha tugab bo‘ladigan ish.",question:"Kelajakdagi deadlinegacha tugaydimi?",examples:["By 8 PM, I will have finished my homework.","By Friday, she will have read the book.","By next year, I will have learned many words."],game:"‘By 2030’: 3 ta narsani ‘will have + V3’ bilan ayting.",tip:"by + future time juda kuchli signal."},
+{name:"Future Perfect Continuous",formula:"will have been + V-ing",core:"Kelajakdagi ma’lum vaqtgacha qancha muddat davom etib kelayotgan faoliyat.",question:"Kelajakdagi vaqtga kelib qancha vaqt bo‘ladi?",examples:["By next year, I will have been studying English for three years.","By 8 PM, he will have been working for five hours."],game:"‘How long by...?’ — kelajakdagi vaqtga nisbatan duration gaplar tuzing.",tip:"for + duration + by future time. Juda aniq duration kerak bo‘lganda ishlatiladi."}
+];
+
+const flashcards=[
+["Kecha maktabga bordim.","I went to school yesterday.","Past Simple"],
+["Hozir ingliz tili o‘rganyapman.","I am studying English now.","Present Continuous"],
+["Men hech qachon Tashkentga bormaganman.","I have never been to Tashkent.","Present Perfect"],
+["Men ikki soatdan beri o‘qiyapman.","I have been studying for two hours.","Present Perfect Continuous"],
+["Men kelganimda u ketib bo‘lgan edi.","When I arrived, he had left.","Past Perfect"],
+["Men kelganimda u bir soatdan beri kutayotgan edi.","When I arrived, he had been waiting for an hour.","Past Perfect Continuous"],
+["Ertaga yordam beraman.","I will help you tomorrow.","Future Simple"],
+["Ertaga soat 8 da o‘qiyotgan bo‘laman.","At 8 tomorrow, I will be studying.","Future Continuous"],
+["Jumagacha uy vazifamni tugatgan bo‘laman.","By Friday, I will have finished my homework.","Future Perfect"],
+["Keyingi yilgacha ingliz tilini uch yildan beri o‘rganayotgan bo‘laman.","By next year, I will have been studying English for three years.","Future Perfect Continuous"],
+["U har kuni shaxmat o‘ynaydi.","He plays chess every day.","Present Simple"],
+["Kecha soat 8 da Minecraft o‘ynayotgan edim.","I was playing Minecraft at 8 PM yesterday.","Past Continuous"]
+];
+
+let state=JSON.parse(localStorage.getItem("tenseMasterUZ")||'{"done":[],"xp":0}');
+let flashIndex=0,flashBack=false;
+
+function save(){localStorage.setItem("tenseMasterUZ",JSON.stringify(state));updateStats();renderProgress()}
+function go(id){document.getElementById(id).scrollIntoView({behavior:"smooth",block:"start"})}
+function updateStats(){
+ document.getElementById("lessonDone").textContent=state.done.length+"/12";
+ document.getElementById("gameScore").textContent=state.xp;
+ document.getElementById("overall").textContent=Math.round(state.done.length/12*100)+"%";
+}
+function renderLessons(){
+ const box=document.getElementById("lessonList");
+ box.innerHTML=lessons.map((l,i)=>`
+ <details id="lesson${i}" ${i===0?'open':''}>
+ <summary><span class="dot"></span> ${i+1}. ${l.name} ${state.done.includes(i)?'✅':''}</summary>
+ <div class="card lesson" style="margin-top:12px">
+ <p><span class="pill">ASOSIY G‘OYA</span> <b>${l.core}</b></p>
+ <p><b>O‘zingizga savol:</b> ${l.question}</p>
+ <div class="formula">${l.formula}</div>
+ <h4>📌 Misollar</h4>${l.examples.map(x=>`<div class="example">${x}</div>`).join("")}
+ <div class="tip"><b>💡 Signal/Tip:</b> ${l.tip}</div>
+ <h4>🎮 Mini-o‘yin</h4><p>${l.game}</p>
+ <button class="btn primary" onclick="completeLesson(${i})">${state.done.includes(i)?'✓ Mastery bajarilgan':'🏆 Mastery deb belgilash'}</button>
+ </div>
+ </details>`).join("");
+}
+function completeLesson(i){if(!state.done.includes(i)){state.done.push(i);state.xp+=50;save();renderLessons();alert("🔥 +50 XP! "+lessons[i].name+" mastery sifatida belgilandi.");}}
+function renderFlash(){const f=flashcards[flashIndex];document.getElementById("flash").innerHTML=flashBack?`<div>🇬🇧 <b>${f[1]}</b><small>${f[2]} • Javob</small></div>`:`<div>🇺🇿 <b>${f[0]}</b><small>Kartani bosib javobni ko‘ring</small></div>`}
+function flipFlash(){flashBack=!flashBack;renderFlash()}
+function nextFlash(){flashIndex=(flashIndex+1)%flashcards.length;flashBack=false;renderFlash()}
+function prevFlash(){flashIndex=(flashIndex-1+flashcards.length)%flashcards.length;flashBack=false;renderFlash()}
+
+const tenseQs=[
+["Do‘stim har kuni shaxmat o‘ynaydi.","Present Simple",["Present Simple","Present Continuous","Past Simple"]],
+["Men hozir uy vazifamni qilyapman.","Present Continuous",["Past Continuous","Present Continuous","Present Perfect"]],
+["Men bu filmni allaqachon ko‘rganman.","Present Perfect",["Past Simple","Present Perfect","Future Perfect"]],
+["Men ikki soatdan beri o‘qiyapman.","Present Perfect Continuous",["Present Perfect","Present Perfect Continuous","Past Perfect Continuous"]],
+["Kecha u menga qo‘ng‘iroq qildi.","Past Simple",["Past Simple","Past Continuous","Present Perfect"]],
+["Men kelganimda u uxlayotgan edi.","Past Continuous",["Past Simple","Past Continuous","Past Perfect"]],
+["Men kelganimda u allaqachon ketgan edi.","Past Perfect",["Past Perfect","Past Simple","Present Perfect"]],
+["Men kelganimda u bir soatdan beri kutayotgan edi.","Past Perfect Continuous",["Past Perfect","Past Perfect Continuous","Past Continuous"]],
+["Menimcha, ertaga yomg‘ir yog‘adi.","Future Simple",["Future Simple","Future Continuous","Present Simple"]],
+["Ertaga soat 8 da o‘qiyotgan bo‘laman.","Future Continuous",["Future Perfect","Future Continuous","Future Simple"]],
+["Jumagacha kitobni tugatgan bo‘laman.","Future Perfect",["Future Simple","Future Perfect","Future Perfect Continuous"]],
+["Keyingi yilgacha 3 yildan beri ingliz tili o‘rganayotgan bo‘laman.","Future Perfect Continuous",["Future Perfect","Future Perfect Continuous","Present Perfect Continuous"]]
+];
+let tq=0;
+function renderTenseGame(){
+ const q=tenseQs[tq];
+ document.getElementById("tenseGame").innerHTML=`<h3>${q[0]}</h3><div class="choiceRow">${q[2].map(c=>`<button class="choice" onclick="answerTense(this,'${c}','${q[1]}')">${c}</button>`).join("")}</div><div id="tgfb" class="feedback"></div><button class="btn small" onclick="nextTenseQ()">Keyingi vaziyat →</button>`;
+}
+function answerTense(el,ans,correct){
+ document.querySelectorAll("#tenseGame .choice").forEach(b=>b.disabled=true);
+ if(ans===correct){el.classList.add("correct");document.getElementById("tgfb").innerHTML="✅ To‘g‘ri! +20 XP";state.xp+=20;save()}
+ else{el.classList.add("wrong");document.getElementById("tgfb").innerHTML="❌ To‘g‘ri javob: <span class='answer'>"+correct+"</span>"}
+}
+function nextTenseQ(){tq=(tq+1)%tenseQs.length;renderTenseGame()}
+
+const detective=[
+["Nega Ali charchagan?","Ali had been running for an hour.","Past Perfect Continuous"],
+["Nega telefoning hozir yo‘q?","I have lost my phone.","Present Perfect"],
+["Nega xona ho‘l?","It has been raining.","Present Perfect Continuous"],
+["Men kelganimda nega do‘sting yo‘q edi?","He had left before I arrived.","Past Perfect"],
+["Ertaga soat 9 da nima qilasan?","I will be studying at 9.","Future Continuous"],
+["2030-yilgacha nima tugagan bo‘ladi?","I will have finished my studies.","Future Perfect"]
+];
+let dq=0;
+function renderDetective(){
+ const q=detective[dq];
+ document.getElementById("detectiveGame").innerHTML=`<h3>🕵️ ${q[0]}</h3><p class="muted">Avval o‘zingiz gap tuzing. Keyin javobni oching.</p><button class="btn" onclick="showDetective()">🔎 Javobni tekshirish</button><div id="dfb" class="feedback"></div><br><button class="btn small" onclick="dq=(dq+1)%detective.length;renderDetective()">Keyingi sir →</button>`;
+}
+function showDetective(){const q=detective[dq];document.getElementById("dfb").innerHTML=`💡 <span class="answer">${q[1]}</span><br><span class="pill">${q[2]}</span>`;state.xp+=10;save()}
+
+const ex=[
+["I ___ (study) English every day.","study","Present Simple"],
+["She ___ (cook) right now.","is cooking","Present Continuous"],
+["I ___ already ___ (finish) my homework.","have already finished","Present Perfect"],
+["We ___ (wait) for two hours.","have been waiting","Present Perfect Continuous"],
+["I ___ (see) him yesterday.","saw","Past Simple"],
+["At 8 PM yesterday, I ___ (play) Minecraft.","was playing","Past Continuous"],
+["When I arrived, the train ___ (leave).","had left","Past Perfect"],
+["She was tired because she ___ (work) all day.","had been working","Past Perfect Continuous"],
+["I think I ___ (help) you tomorrow.","will help","Future Simple"],
+["At 9 tomorrow, I ___ (take) my English lesson.","will be taking","Future Continuous"],
+["By Friday, I ___ (finish) the project.","will have finished","Future Perfect"],
+["By next June, I ___ (study) English for two years.","will have been studying","Future Perfect Continuous"]
+];
+function newExercises(){
+ document.getElementById("exerciseResult").textContent="";
+ document.getElementById("exerciseArea").innerHTML=ex.map((e,i)=>`<div class="example"><b>${i+1}. ${e[0]}</b><input id="ex${i}" type="text" placeholder="Javobingiz..."><small class="muted">Zamon: ${e[2]}</small></div>`).join("");
+}
+function normalize(s){return s.toLowerCase().replace(/[.,!?]/g,"").replace(/\s+/g," ").trim()}
+function checkExercises(){
+ let score=0;
+ ex.forEach((e,i)=>{let v=normalize(document.getElementById("ex"+i).value);if(v===normalize(e[1])){score++}});
+ let pct=Math.round(score/ex.length*100);
+ document.getElementById("exerciseResult").innerHTML=`${pct>=80?'🏆 Ajoyib!':'💪 Yana bir marta urinib ko‘ring.'} <b>${score}/${ex.length}</b> — ${pct}%<br><span class="muted">Ideal mastery: 90%+</span>`;
+ state.xp+=score*5;save();
+}
+function renderProgress(){
+ const b=document.getElementById("progressRows");
+ b.innerHTML=lessons.map((l,i)=>`<div class="barrow"><span>${i+1}. ${l.name}</span><div class="progress"><i style="width:${state.done.includes(i)?100:0}%"></i></div><b>${state.done.includes(i)?100:0}%</b></div>`).join("");
+}
+function resetProgress(){if(confirm("Progressni o‘chirishga ishonchingiz komilmi?")){state={done:[],xp:0};save();renderLessons()}}
+renderLessons();renderFlash();renderTenseGame();renderDetective();newExercises();updateStats();renderProgress();
+</script>
+</body>
+</html>
